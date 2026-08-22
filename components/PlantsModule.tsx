@@ -3,10 +3,10 @@ import {useEffect,useMemo,useState} from "react";
 import {Leaf,Plus,Search,Pencil,Trash2} from "lucide-react";
 import {createClient} from "@/lib/supabase/client";
 
-type Aquarium={id:string;name:string;net_volume_l:number};
+type Aquarium={id:string;name:string;net_volume_l:number;height_cm?:number};
 type PlantCatalog={id:string;scientific_name:string;common_name?:string;difficulty?:string;light_requirement?:string;co2_requirement?:string;growth_rate?:string;placement?:string;ph_min?:number;ph_max?:number;gh_min?:number;gh_max?:number;kh_min?:number;kh_max?:number;temperature_min?:number;temperature_max?:number;notes?:string};
 type AquariumPlant={id:string;plant_id?:string;custom_name?:string;quantity?:number;placement?:string;notes?:string;plant_catalog?:PlantCatalog|null};
-type Equipment={category:string;specs:any;active:boolean};
+type Equipment={category:string;specs:any;settings:any;active:boolean};
 
 const difficultyLabel:Record<string,string>={easy:"Nenáročná",medium:"Stredne náročná",hard:"Náročná",low:"Nenáročná",moderate:"Stredne náročná",high:"Náročná"};
 const requirementRank:Record<string,number>={low:1,easy:1,none:1,medium:2,moderate:2,recommended:2,high:3,hard:3,required:3};
@@ -32,7 +32,7 @@ export default function PlantsModule({aquariums}:{aquariums:Aquarium[]}){
     const s=createClient();
     const [plants,eq]=await Promise.all([
       s.from("aquarium_plants").select("id,plant_id,custom_name,quantity,placement,notes,plant_catalog(id,scientific_name,common_name,difficulty,light_requirement,co2_requirement,growth_rate,placement,ph_min,ph_max,gh_min,gh_max,kh_min,kh_max,temperature_min,temperature_max,notes)").eq("aquarium_id",aquariumId).order("created_at"),
-      s.from("aquarium_equipment").select("category,specs,active").eq("aquarium_id",aquariumId).eq("active",true)
+      s.from("aquarium_equipment").select("category,specs,settings,active").eq("aquarium_id",aquariumId).eq("active",true)
     ]);
     if(plants.error)return alert(plants.error.message);if(eq.error)return alert(eq.error.message);
     setItems((plants.data||[]) as unknown as AquariumPlant[]);setEquipment((eq.data||[]) as Equipment[]);
@@ -40,11 +40,15 @@ export default function PlantsModule({aquariums}:{aquariums:Aquarium[]}){
 
   const lightSummary=useMemo(()=>{
     const lights=equipment.filter(x=>x.category==="light");
-    const totalW=lights.reduce((sum,x)=>sum+Number(x.specs?.light_w||x.specs?.power_w||0),0);
-    const aq=aquariums.find(a=>a.id===aquariumId);const wpl=aq&&aq.net_volume_l?totalW/aq.net_volume_l:0;
+    const nominalW=lights.reduce((sum,x)=>sum+Number(x.specs?.light_w||x.specs?.power_w||0),0);
+    const effectiveW=lights.reduce((sum,x)=>sum+Number(x.specs?.light_w||x.specs?.power_w||0)*(Number(x.settings?.intensity_pct??100)/100),0);
+    const aq=aquariums.find(a=>a.id===aquariumId);const wpl=aq&&aq.net_volume_l?effectiveW/aq.net_volume_l:0;
     const spectra=[...new Set(lights.map(x=>x.specs?.light_spectrum).filter(Boolean))];
-    const level=wpl>=.35?3:wpl>=.2?2:wpl>0?1:0;
-    return {count:lights.length,totalW,wpl,level,spectra};
+    const photoperiod=effectiveW>0?lights.reduce((sum,x)=>{const ew=Number(x.specs?.light_w||x.specs?.power_w||0)*(Number(x.settings?.intensity_pct??100)/100);return sum+ew*Number(x.settings?.photoperiod_hours??8)},0)/effectiveW:0;
+    const heightPenalty=aq?.height_cm?(aq.height_cm>55?.8:aq.height_cm>45?.9:1):1;
+    const adjustedWpl=wpl*heightPenalty;
+    const level=adjustedWpl>=.35?3:adjustedWpl>=.2?2:adjustedWpl>0?1:0;
+    return {count:lights.length,nominalW,effectiveW,wpl,adjustedWpl,level,spectra,photoperiod,heightCm:aq?.height_cm};
   },[equipment,aquariumId,aquariums]);
   const hasCo2=equipment.some(x=>x.category==="co2");
 
@@ -63,11 +67,12 @@ export default function PlantsModule({aquariums}:{aquariums:Aquarium[]}){
   if(!aquariums.length)return <section className="card"><h3>Rastliny</h3><p>Najprv vytvor akvárium.</p></section>;
   const lightOk=plantRequirement.light===0||lightSummary.level>=plantRequirement.light;
   const co2Ok=plantRequirement.co2<2||hasCo2;
+  const photoWarning=lightSummary.count>0&&(lightSummary.photoperiod<5||lightSummary.photoperiod>10);
 
   return <>
     <div className="toolbar"><label>Akvárium <select value={aquariumId} onChange={e=>setAquariumId(e.target.value)}>{aquariums.map(a=><option key={a.id} value={a.id}>{a.name} · {a.net_volume_l} l</option>)}</select></label><button className="primary" onClick={()=>{reset();setShow(true)}}><Plus size={17}/> Pridať rastlinu</button></div>
 
-    <section className="card"><h3>Vyhodnotenie rastlín a techniky</h3><p><b>Celkové osvetlenie:</b> {lightSummary.count} svetiel · {lightSummary.totalW.toFixed(1)} W · {lightSummary.wpl.toFixed(2)} W/l{lightSummary.spectra.length?` · spektrá ${lightSummary.spectra.join(", ")}`:""}</p><p><b>CO₂:</b> {hasCo2?"systém evidovaný":"bez evidovaného CO₂ systému"}</p>{items.length?<p>{lightOk&&co2Ok?"✅ Aktuálna kombinácia techniky orientačne zodpovedá náročnosti evidovaných rastlín.":`⚠️ ${!lightOk?`Celkové osvetlenie môže byť slabé pre najnáročnejšiu rastlinu${plantRequirement.hardest?` (${plantRequirement.hardest})`:""}. `:""}${!co2Ok?"Niektoré rastliny odporúčajú alebo vyžadujú CO₂.":""}`}</p>:<p className="muted">Po pridaní rastlín sa tu zobrazí spoločné vyhodnotenie.</p>}<p className="muted">W/l je iba orientačný údaj. Neskôr do hodnotenia zapojíme PAR, výšku nádrže, intenzitu kanálov a fotoperiódu.</p></section>
+    <section className="card"><h3>Vyhodnotenie rastlín a techniky</h3><p><b>Celkové osvetlenie:</b> {lightSummary.count} svetiel · nominálne {lightSummary.nominalW.toFixed(1)} W · po intenzite ≈ {lightSummary.effectiveW.toFixed(1)} W · {lightSummary.wpl.toFixed(2)} efektívneho W/l{lightSummary.spectra.length?` · spektrá ${lightSummary.spectra.join(", ")}`:""}</p><p><b>Fotoperióda:</b> {lightSummary.count?`${lightSummary.photoperiod.toFixed(1)} h/deň (vážený priemer podľa výkonu)`:"nezadaná"}{lightSummary.heightCm?` · výška nádrže ${lightSummary.heightCm} cm`:""}</p><p><b>CO₂:</b> {hasCo2?"systém evidovaný":"bez evidovaného CO₂ systému"}</p>{items.length?<p>{lightOk&&co2Ok&&!photoWarning?"✅ Aktuálna kombinácia techniky orientačne zodpovedá náročnosti evidovaných rastlín.":`⚠️ ${!lightOk?`Celkové osvetlenie môže byť slabé pre najnáročnejšiu rastlinu${plantRequirement.hardest?` (${plantRequirement.hardest})`:""}. `:""}${!co2Ok?"Niektoré rastliny odporúčajú alebo vyžadujú CO₂. ":""}${photoWarning?"Fotoperióda je mimo bežného orientačného rozsahu 5–10 hodín/deň.":""}`}</p>:<p className="muted">Po pridaní rastlín sa tu zobrazí spoločné vyhodnotenie.</p>}<p className="muted">W/l ostáva orientačný údaj, ale hodnotenie už zohľadňuje nastavenú intenzitu svetiel, výšku nádrže a fotoperiódu. Keď bude pri konkrétnom svetle dostupný PAR, bude mať pri hodnotení vyššiu váhu než W/l.</p></section>
 
     {show&&<section className="card"><h3>{editing?"Upraviť rastlinu":"Pridať rastlinu"}</h3>{!editing&&<div className="mode-tabs"><button className={mode==="catalog"?"selected":""} onClick={()=>setMode("catalog")}>Vyhľadať v katalógu</button><button className={mode==="manual"?"selected":""} onClick={()=>setMode("manual")}>Manuálne zadanie</button></div>}{mode==="catalog"&&!editing?<><label>Vyhľadať rastlinu<div className="searchbox"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="napr. Rotala, Eleocharis, Anubias..."/></div></label>{searching&&<p className="muted">Hľadám v katalógu…</p>}{!searching&&query.trim().length>=2&&!results.length&&<div className="notice"><b>Rastlina sa nenašla.</b><p>Môžeš ju pridať manuálne.</p><button onClick={()=>{setMode("manual");setForm({...form,name:query})}}>Zadať manuálne</button></div>}<div className="catalog-results">{results.map(p=><div className="catalog-result" key={p.id}><div><b><i>{p.scientific_name}</i></b>{p.common_name&&<small>{p.common_name}</small>}<p className="muted">{difficultyLabel[(p.difficulty||"").toLowerCase()]||p.difficulty||"Náročnosť neuvedená"} · svetlo {p.light_requirement||"?"} · CO₂ {p.co2_requirement||"?"}{p.placement?` · ${p.placement}`:""}</p></div><button className="primary" disabled={busy} onClick={()=>addCatalog(p)}>Použiť</button></div>)}</div></>:<form className="form" onSubmit={saveManual}><label>Názov rastliny<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label><label>Počet / trsy<input type="number" min="1" step="1" value={form.quantity} onChange={e=>setForm({...form,quantity:e.target.value})}/></label><label>Umiestnenie<select value={form.placement} onChange={e=>setForm({...form,placement:e.target.value})}><option value="">Neuvedené</option><option value="foreground">Popredie</option><option value="midground">Stred</option><option value="background">Pozadie</option><option value="epiphyte">Epifyt / koreň / kameň</option><option value="floating">Plávajúca</option></select></label><label>Poznámka<input value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/></label><div className="form-actions"><button className="primary" disabled={busy}>{busy?"Ukladám...":editing?"Uložiť zmeny":"Uložiť rastlinu"}</button><button type="button" onClick={reset}>Zrušiť</button></div></form>}</section>}
 
