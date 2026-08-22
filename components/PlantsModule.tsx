@@ -1,0 +1,76 @@
+"use client";
+import {useEffect,useMemo,useState} from "react";
+import {Leaf,Plus,Search,Pencil,Trash2} from "lucide-react";
+import {createClient} from "@/lib/supabase/client";
+
+type Aquarium={id:string;name:string;net_volume_l:number};
+type PlantCatalog={id:string;scientific_name:string;common_name?:string;difficulty?:string;light_requirement?:string;co2_requirement?:string;growth_rate?:string;placement?:string;ph_min?:number;ph_max?:number;gh_min?:number;gh_max?:number;kh_min?:number;kh_max?:number;temperature_min?:number;temperature_max?:number;notes?:string};
+type AquariumPlant={id:string;plant_id?:string;custom_name?:string;quantity?:number;placement?:string;notes?:string;plant_catalog?:PlantCatalog|null};
+type Equipment={category:string;specs:any;active:boolean};
+
+const difficultyLabel:Record<string,string>={easy:"Nenáročná",medium:"Stredne náročná",hard:"Náročná",low:"Nenáročná",moderate:"Stredne náročná",high:"Náročná"};
+const requirementRank:Record<string,number>={low:1,easy:1,none:1,medium:2,moderate:2,recommended:2,high:3,hard:3,required:3};
+
+export default function PlantsModule({aquariums}:{aquariums:Aquarium[]}){
+  const[aquariumId,setAquariumId]=useState(aquariums[0]?.id||"");
+  const[items,setItems]=useState<AquariumPlant[]>([]);
+  const[equipment,setEquipment]=useState<Equipment[]>([]);
+  const[show,setShow]=useState(false);
+  const[mode,setMode]=useState<"catalog"|"manual">("catalog");
+  const[query,setQuery]=useState("");
+  const[results,setResults]=useState<PlantCatalog[]>([]);
+  const[searching,setSearching]=useState(false);
+  const[busy,setBusy]=useState(false);
+  const[editing,setEditing]=useState<AquariumPlant|null>(null);
+  const[form,setForm]=useState({name:"",quantity:"1",placement:"",notes:""});
+
+  useEffect(()=>{if(!aquariumId&&aquariums[0])setAquariumId(aquariums[0].id)},[aquariums,aquariumId]);
+  useEffect(()=>{if(aquariumId)load()},[aquariumId]);
+  useEffect(()=>{if(mode!=="catalog"||query.trim().length<2){setResults([]);return}const t=setTimeout(async()=>{setSearching(true);try{const r=await fetch(`/api/plant-search?q=${encodeURIComponent(query.trim())}`);const j=await r.json();setResults(j.items||[])}finally{setSearching(false)}},300);return()=>clearTimeout(t)},[query,mode]);
+
+  async function load(){
+    const s=createClient();
+    const [plants,eq]=await Promise.all([
+      s.from("aquarium_plants").select("id,plant_id,custom_name,quantity,placement,notes,plant_catalog(id,scientific_name,common_name,difficulty,light_requirement,co2_requirement,growth_rate,placement,ph_min,ph_max,gh_min,gh_max,kh_min,kh_max,temperature_min,temperature_max,notes)").eq("aquarium_id",aquariumId).order("created_at"),
+      s.from("aquarium_equipment").select("category,specs,active").eq("aquarium_id",aquariumId).eq("active",true)
+    ]);
+    if(plants.error)return alert(plants.error.message);if(eq.error)return alert(eq.error.message);
+    setItems((plants.data||[]) as unknown as AquariumPlant[]);setEquipment((eq.data||[]) as Equipment[]);
+  }
+
+  const lightSummary=useMemo(()=>{
+    const lights=equipment.filter(x=>x.category==="light");
+    const totalW=lights.reduce((sum,x)=>sum+Number(x.specs?.light_w||x.specs?.power_w||0),0);
+    const aq=aquariums.find(a=>a.id===aquariumId);const wpl=aq&&aq.net_volume_l?totalW/aq.net_volume_l:0;
+    const spectra=[...new Set(lights.map(x=>x.specs?.light_spectrum).filter(Boolean))];
+    const level=wpl>=.35?3:wpl>=.2?2:wpl>0?1:0;
+    return {count:lights.length,totalW,wpl,level,spectra};
+  },[equipment,aquariumId,aquariums]);
+  const hasCo2=equipment.some(x=>x.category==="co2");
+
+  const plantRequirement=useMemo(()=>{
+    let light=0,co2=0;let hardest="";
+    for(const x of items){const p=x.plant_catalog;if(!p)continue;const l=requirementRank[(p.light_requirement||"").toLowerCase()]||requirementRank[(p.difficulty||"").toLowerCase()]||1;const c=requirementRank[(p.co2_requirement||"").toLowerCase()]||1;if(l>light){light=l;hardest=p.scientific_name}co2=Math.max(co2,c)}
+    return {light,co2,hardest};
+  },[items]);
+
+  function reset(){setShow(false);setEditing(null);setMode("catalog");setQuery("");setResults([]);setForm({name:"",quantity:"1",placement:"",notes:""})}
+  async function addCatalog(p:PlantCatalog){setBusy(true);const{error}=await createClient().from("aquarium_plants").insert({aquarium_id:aquariumId,plant_id:p.id,quantity:1,placement:p.placement||null});setBusy(false);if(error)return alert(error.message);reset();load()}
+  async function saveManual(e:React.FormEvent){e.preventDefault();setBusy(true);const payload={custom_name:form.name,quantity:Number(form.quantity||1),placement:form.placement||null,notes:form.notes||null};const r=editing?await createClient().from("aquarium_plants").update(payload).eq("id",editing.id):await createClient().from("aquarium_plants").insert({aquarium_id:aquariumId,...payload});setBusy(false);if(r.error)return alert(r.error.message);reset();load()}
+  function startEdit(x:AquariumPlant){setEditing(x);setMode("manual");setForm({name:x.custom_name||x.plant_catalog?.scientific_name||"",quantity:String(x.quantity||1),placement:x.placement||"",notes:x.notes||""});setShow(true);window.scrollTo({top:0,behavior:"smooth"})}
+  async function remove(x:AquariumPlant){const name=x.plant_catalog?.scientific_name||x.custom_name||"rastlinu";if(!confirm(`Naozaj chceš odstrániť ${name}?`))return;const{error}=await createClient().from("aquarium_plants").delete().eq("id",x.id);if(error)return alert(error.message);setItems(v=>v.filter(i=>i.id!==x.id))}
+
+  if(!aquariums.length)return <section className="card"><h3>Rastliny</h3><p>Najprv vytvor akvárium.</p></section>;
+  const lightOk=plantRequirement.light===0||lightSummary.level>=plantRequirement.light;
+  const co2Ok=plantRequirement.co2<2||hasCo2;
+
+  return <>
+    <div className="toolbar"><label>Akvárium <select value={aquariumId} onChange={e=>setAquariumId(e.target.value)}>{aquariums.map(a=><option key={a.id} value={a.id}>{a.name} · {a.net_volume_l} l</option>)}</select></label><button className="primary" onClick={()=>{reset();setShow(true)}}><Plus size={17}/> Pridať rastlinu</button></div>
+
+    <section className="card"><h3>Vyhodnotenie rastlín a techniky</h3><p><b>Celkové osvetlenie:</b> {lightSummary.count} svetiel · {lightSummary.totalW.toFixed(1)} W · {lightSummary.wpl.toFixed(2)} W/l{lightSummary.spectra.length?` · spektrá ${lightSummary.spectra.join(", ")}`:""}</p><p><b>CO₂:</b> {hasCo2?"systém evidovaný":"bez evidovaného CO₂ systému"}</p>{items.length?<p>{lightOk&&co2Ok?"✅ Aktuálna kombinácia techniky orientačne zodpovedá náročnosti evidovaných rastlín.":`⚠️ ${!lightOk?`Celkové osvetlenie môže byť slabé pre najnáročnejšiu rastlinu${plantRequirement.hardest?` (${plantRequirement.hardest})`:""}. `:""}${!co2Ok?"Niektoré rastliny odporúčajú alebo vyžadujú CO₂.":""}`}</p>:<p className="muted">Po pridaní rastlín sa tu zobrazí spoločné vyhodnotenie.</p>}<p className="muted">W/l je iba orientačný údaj. Neskôr do hodnotenia zapojíme PAR, výšku nádrže, intenzitu kanálov a fotoperiódu.</p></section>
+
+    {show&&<section className="card"><h3>{editing?"Upraviť rastlinu":"Pridať rastlinu"}</h3>{!editing&&<div className="mode-tabs"><button className={mode==="catalog"?"selected":""} onClick={()=>setMode("catalog")}>Vyhľadať v katalógu</button><button className={mode==="manual"?"selected":""} onClick={()=>setMode("manual")}>Manuálne zadanie</button></div>}{mode==="catalog"&&!editing?<><label>Vyhľadať rastlinu<div className="searchbox"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="napr. Rotala, Eleocharis, Anubias..."/></div></label>{searching&&<p className="muted">Hľadám v katalógu…</p>}{!searching&&query.trim().length>=2&&!results.length&&<div className="notice"><b>Rastlina sa nenašla.</b><p>Môžeš ju pridať manuálne.</p><button onClick={()=>{setMode("manual");setForm({...form,name:query})}}>Zadať manuálne</button></div>}<div className="catalog-results">{results.map(p=><div className="catalog-result" key={p.id}><div><b><i>{p.scientific_name}</i></b>{p.common_name&&<small>{p.common_name}</small>}<p className="muted">{difficultyLabel[(p.difficulty||"").toLowerCase()]||p.difficulty||"Náročnosť neuvedená"} · svetlo {p.light_requirement||"?"} · CO₂ {p.co2_requirement||"?"}{p.placement?` · ${p.placement}`:""}</p></div><button className="primary" disabled={busy} onClick={()=>addCatalog(p)}>Použiť</button></div>)}</div></>:<form className="form" onSubmit={saveManual}><label>Názov rastliny<input required value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></label><label>Počet / trsy<input type="number" min="1" step="1" value={form.quantity} onChange={e=>setForm({...form,quantity:e.target.value})}/></label><label>Umiestnenie<select value={form.placement} onChange={e=>setForm({...form,placement:e.target.value})}><option value="">Neuvedené</option><option value="foreground">Popredie</option><option value="midground">Stred</option><option value="background">Pozadie</option><option value="epiphyte">Epifyt / koreň / kameň</option><option value="floating">Plávajúca</option></select></label><label>Poznámka<input value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})}/></label><div className="form-actions"><button className="primary" disabled={busy}>{busy?"Ukladám...":editing?"Uložiť zmeny":"Uložiť rastlinu"}</button><button type="button" onClick={reset}>Zrušiť</button></div></form>}</section>}
+
+    <div className="grid3">{items.map(x=>{const p=x.plant_catalog;const name=p?.scientific_name||x.custom_name||"Rastlina";return <section className="card" key={x.id}><h3><Leaf size={17}/> {name}</h3>{p?.common_name&&<p>{p.common_name}</p>}<p><b>{difficultyLabel[(p?.difficulty||"").toLowerCase()]||p?.difficulty||"Manuálne pridaná"}</b>{p?.light_requirement?` · svetlo ${p.light_requirement}`:""}{p?.co2_requirement?` · CO₂ ${p.co2_requirement}`:""}</p><p className="muted">{x.placement||p?.placement||"Umiestnenie neuvedené"} · množstvo {x.quantity||1}</p>{p&&(p.ph_min!=null||p.temperature_min!=null)&&<p className="muted">{p.ph_min!=null?`pH ${p.ph_min}–${p.ph_max}`:""}{p.temperature_min!=null?` · ${p.temperature_min}–${p.temperature_max} °C`:""}</p>}<div className="form-actions"><button onClick={()=>startEdit(x)}><Pencil size={15}/> Upraviť</button><button className="danger" onClick={()=>remove(x)}><Trash2 size={15}/> Odstrániť</button></div></section>})}{!items.length&&<section className="card"><h3>Bez rastlín</h3><p>Pridaj rastliny a DuoAkva Diary porovná ich nároky s technikou nádrže.</p></section>}</div>
+  </>
+}
