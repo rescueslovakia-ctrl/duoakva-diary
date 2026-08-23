@@ -8,8 +8,8 @@ export async function GET(req:NextRequest){
     const s=await createServerSupabaseClient();
     const safe=q.replace(/[%(),]/g,"");
     const{data,error}=await s.from("fertilizer_catalog")
-      .select("id,manufacturer,product_name,reference_liters,reference_dose_ml,nutrient_effects,official_url,verification_status")
-      .or(`product_name.ilike.%${safe}%,manufacturer.ilike.%${safe}%`).limit(15);
+      .select("id,manufacturer,product_name,reference_liters,reference_dose_ml,nutrient_effects,official_url,source_url,description,dosing_instructions,verification_status")
+      .or(`product_name.ilike.%${safe}%,manufacturer.ilike.%${safe}%`).limit(25);
     if(error)return NextResponse.json({items:[],error:error.message},{status:400});
     return NextResponse.json({items:data||[]});
   }catch(e:any){return NextResponse.json({items:[],error:e.message},{status:500})}
