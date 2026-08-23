@@ -1,8 +1,6 @@
 import {createServerClient} from "@supabase/ssr";
 import {NextResponse,type NextRequest} from "next/server";
 
-const AUTH_TIMEOUT_MS=2500;
-
 export async function middleware(request:NextRequest){
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -18,20 +16,19 @@ export async function middleware(request:NextRequest){
     }
   }});
 
-  // Refresh the Supabase session when possible, but never allow an auth/network
-  // problem to block every route until Vercel kills the middleware invocation.
-  try{
-    await Promise.race([
-      supabase.auth.getUser(),
-      new Promise((_,reject)=>setTimeout(()=>reject(new Error("Supabase auth timeout")),AUTH_TIMEOUT_MS))
-    ]);
-  }catch(error){
-    console.warn("Middleware auth refresh skipped:",error instanceof Error?error.message:"unknown error");
-  }
+  // Do not refresh auth on the login page itself. Login is handled by the
+  // browser Supabase client and must be allowed to finish without middleware
+  // competing with the newly-created session cookies.
+  if(request.nextUrl.pathname.startsWith('/auth'))return response;
 
+  try{
+    await supabase.auth.getUser();
+  }catch(error){
+    console.warn('Supabase session refresh failed',error);
+  }
   return response;
 }
 
 export const config={
-  matcher:["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"]
+  matcher:["/((?!auth(?:/|$)|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"]
 };
