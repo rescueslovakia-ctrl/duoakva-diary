@@ -6,6 +6,7 @@ import AquariumsModule,{type Aquarium} from "@/components/AquariumsModule";
 import MeasurementsModule from "@/components/MeasurementsModule";
 import EquipmentModule from "@/components/EquipmentModule";
 import PlantsModule from "@/components/PlantsModule";
+import LivestockModule from "@/components/LivestockModule";
 import FertilizersModule from "@/components/FertilizersModule";
 
 const nav=[["Prehľad",Home],["Akváriá",Waves],["Merania",FlaskConical],["Technika",Wrench],["Rastliny",Leaf],["Osádka",Fish],["Hnojenie",Droplets],["Údržba",NotebookPen],["Úlohy",Bell],["Nastavenia",Settings]] as const;
@@ -20,6 +21,7 @@ export default function App(){
  else if(page==="Merania")body=<MeasurementsModule aquariums={aquariums}/>;
  else if(page==="Technika")body=<EquipmentModule aquariums={aquariums}/>;
  else if(page==="Rastliny")body=<PlantsModule aquariums={aquariums}/>;
+ else if(page==="Osádka")body=<LivestockModule aquariums={aquariums}/>;
  else if(page==="Hnojenie")body=<FertilizersModule aquariums={aquariums}/>;
  else body=<section className="card"><h3>{page}</h3><p>Modul <b>{page}</b> bude pripojený v ďalšom kroku.</p></section>;
  return <div className="app"><aside><div className="logo">DuoAkva <b>Diary</b></div>{nav.map(([n,I])=><button className={page===n?"on":""} key={n} onClick={()=>setPage(n)}><I size={18}/>{n}</button>)}{email&&<button onClick={logout}><LogOut size={18}/>Odhlásiť</button>}</aside><main><header><div><small>DUOAKVA DIARY</small><h1>{page}</h1></div>{email?<span className="account">{email}</span>:<a className="primary link" href="/auth">Prihlásiť sa</a>}</header>{msg&&<div className="notice">{msg}</div>}{body}</main></div>
