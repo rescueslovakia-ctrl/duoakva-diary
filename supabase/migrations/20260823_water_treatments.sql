@@ -44,5 +44,5 @@ grant select on public.water_treatment_catalog to authenticated;
 grant select,insert,update,delete on public.aquarium_water_treatments to authenticated;
 
 insert into public.water_treatment_catalog(manufacturer,product_name,treatment_type,form,dose_unit,reference_dose,reference_liters,gh_increase,kh_increase,ca_mg_ratio,notes,source_url,verification_status)
-values('INVITAL','MineralPlus GH+KH','remineralizer','powder','g',5.5,100,1.4,0.7,'3:1','Zarovnaná odmerka má 5,5 g. Produkt zvyšuje GH aj KH a je určený najmä pre RO/mäkkú vodu.','https://www.invitalshop.sk/invital-mineralplus-ghkh-250g','verified')
-on conflict(manufacturer,product_name) do update set reference_dose=excluded.reference_dose,reference_liters=excluded.reference_liters,gh_increase=excluded.gh_increase,kh_increase=excluded.kh_increase,ca_mg_ratio=excluded.ca_mg_ratio,source_url=excluded.source_url,verification_status=excluded.verification_status;
+values('INVITAL','MineralPlus GH+KH','remineralizer','powder','g',5.5,100,1.4,0.5,'3:1','Zarovnaná odmerka má 5,5 g. Podľa tabuľky výrobcu pri 100 l jedna odmerka zvyšuje GH približne o 1,4 °dGH a KH o 0,5 °dKH.','https://www.invitalshop.sk/invital-mineralplus-ghkh-250g','verified')
+on conflict(manufacturer,product_name) do update set reference_dose=excluded.reference_dose,reference_liters=excluded.reference_liters,gh_increase=excluded.gh_increase,kh_increase=excluded.kh_increase,ca_mg_ratio=excluded.ca_mg_ratio,notes=excluded.notes,source_url=excluded.source_url,verification_status=excluded.verification_status;
