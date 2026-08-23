@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {Home,Waves,FlaskConical,Wrench,Leaf,Fish,Droplets,NotebookPen,Bell,Settings,LogOut} from "lucide-react";
+import {Home,Waves,FlaskConical,Wrench,Leaf,Fish,Droplets,NotebookPen,Bell,Settings,LogOut,Images} from "lucide-react";
 import {createClient,isSupabaseConfigured} from "@/lib/supabase/client";
 import AquariumsModule,{type Aquarium} from "@/components/AquariumsModule";
 import MeasurementsModule from "@/components/MeasurementsModule";
@@ -13,8 +13,9 @@ import MaintenanceModule from "@/components/MaintenanceModule";
 import TasksModule from "@/components/TasksModule";
 import SettingsModule from "@/components/SettingsModule";
 import DashboardModule from "@/components/DashboardModule";
+import PhotoDiaryModule from "@/components/PhotoDiaryModule";
 
-const nav=[["Prehľad",Home],["Akváriá",Waves],["Merania",FlaskConical],["Technika",Wrench],["Rastliny",Leaf],["Osádka",Fish],["Hnojenie",Droplets],["Údržba",NotebookPen],["Úlohy",Bell],["Nastavenia",Settings]] as const;
+const nav=[["Prehľad",Home],["Akváriá",Waves],["Fotodenník",Images],["Merania",FlaskConical],["Technika",Wrench],["Rastliny",Leaf],["Osádka",Fish],["Hnojenie",Droplets],["Údržba",NotebookPen],["Úlohy",Bell],["Nastavenia",Settings]] as const;
 
 export default function App(){
  const[page,setPage]=useState("Prehľad");const[email,setEmail]=useState("");const[userId,setUserId]=useState("");const[aquariums,setAquariums]=useState<Aquarium[]>([]);const[msg,setMsg]=useState("");
@@ -23,6 +24,7 @@ export default function App(){
  let body:React.ReactNode;
  if(page==="Prehľad")body=<DashboardModule aquariums={aquariums}/>;
  else if(page==="Akváriá")body=<AquariumsModule userId={userId} data={aquariums} setData={setAquariums}/>;
+ else if(page==="Fotodenník")body=<PhotoDiaryModule aquariums={aquariums}/>;
  else if(page==="Merania")body=<MeasurementsModule aquariums={aquariums}/>;
  else if(page==="Technika")body=<EquipmentModule aquariums={aquariums}/>;
  else if(page==="Rastliny")body=<PlantsModule aquariums={aquariums}/>;
