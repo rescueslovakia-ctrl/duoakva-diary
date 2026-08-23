@@ -1,0 +1,16 @@
+"use client";
+import {useEffect,useState} from "react";
+import {createClient} from "@/lib/supabase/client";
+import type {Aquarium} from "@/components/AquariumsModule";
+
+const measurementFields=[['ph','pH',''],['gh','GH','°dGH'],['kh','KH','°dKH'],['no2','NO₂','mg/l'],['no3','NO₃','mg/l'],['nh3','NH₃','mg/l'],['nh4','NH₄','mg/l'],['po4','PO₄','mg/l'],['fe','Fe','mg/l'],['k','K','mg/l'],['mg','Mg','mg/l'],['ca','Ca','mg/l'],['tds','TDS','ppm'],['ec','Vodivosť','µS/cm'],['temperature','Teplota','°C'],['o2','O₂','mg/l']] as const;
+type Measurement={id:string;measured_at:string;note?:string;values:Record<string,number>};
+
+export default function MeasurementsModule({aquariums}:{aquariums:Aquarium[]}){
+ const[aquariumId,setAquariumId]=useState(aquariums[0]?.id||"");const[items,setItems]=useState<Measurement[]>([]);const[busy,setBusy]=useState(false);const[note,setNote]=useState("");const[form,setForm]=useState<Record<string,string>>({});
+ useEffect(()=>{if(!aquariumId&&aquariums[0])setAquariumId(aquariums[0].id)},[aquariums,aquariumId]);useEffect(()=>{if(aquariumId)load()},[aquariumId]);
+ async function load(){const{data,error}=await createClient().from("measurement_sessions").select("id,measured_at,note,measurement_values(parameter_code,value)").eq("aquarium_id",aquariumId).order("measured_at",{ascending:false}).limit(30);if(error)return alert(error.message);setItems((data||[]).map((x:any)=>({id:x.id,measured_at:x.measured_at,note:x.note,values:Object.fromEntries((x.measurement_values||[]).map((v:any)=>[v.parameter_code,Number(v.value)]))})))}
+ async function save(e:React.FormEvent){e.preventDefault();const values=Object.entries(form).filter(([,v])=>v!=="");if(!values.length)return alert("Zadaj aspoň jeden parameter.");setBusy(true);const s=createClient();const{data:session,error}=await s.from("measurement_sessions").insert({aquarium_id:aquariumId,note:note||null}).select("id").single();if(error){setBusy(false);return alert(error.message)}const{error:e2}=await s.from("measurement_values").insert(values.map(([parameter_code,value])=>({session_id:session.id,parameter_code,value:Number(value),source_type:"manual"})));setBusy(false);if(e2)return alert(e2.message);setForm({});setNote("");load()}
+ if(!aquariums.length)return <section className="card"><h3>Merania</h3><p>Najprv vytvor akvárium.</p></section>;
+ return <><section className="card"><h3>Nové meranie</h3><form onSubmit={save}><div className="form"><label>Akvárium<select value={aquariumId} onChange={e=>setAquariumId(e.target.value)}>{aquariums.map(a=><option value={a.id} key={a.id}>{a.name}</option>)}</select></label><label>Poznámka<input value={note} onChange={e=>setNote(e.target.value)}/></label>{measurementFields.map(([code,label,unit])=><label key={code}>{label}{unit?` (${unit})`:''}<input type="number" step="any" value={form[code]||""} onChange={e=>setForm({...form,[code]:e.target.value})}/></label>)}</div><button className="primary" disabled={busy}>Uložiť meranie</button></form></section><section className="card"><h3>História meraní</h3>{items.map(m=><div className="measurement-row" key={m.id}><b>{new Date(m.measured_at).toLocaleString('sk-SK')}</b><div className="measurement-values">{measurementFields.filter(([c])=>m.values[c]!==undefined).map(([c,l,u])=><span key={c}><b>{l}</b> {m.values[c]} {u}</span>)}</div></div>)}</section></>
+}
