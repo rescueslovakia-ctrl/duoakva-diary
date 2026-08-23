@@ -12,7 +12,7 @@ const nav=[["Prehľad",Home],["Akváriá",Waves],["Merania",FlaskConical],["Tech
 
 export default function App(){
  const[page,setPage]=useState("Prehľad");const[email,setEmail]=useState("");const[userId,setUserId]=useState("");const[aquariums,setAquariums]=useState<Aquarium[]>([]);const[msg,setMsg]=useState("");
- useEffect(()=>{(async()=>{if(!isSupabaseConfigured())return;const s=createClient();const{data}=await s.auth.getUser();const u=data.user;if(!u)return;setEmail(u.email||"");setUserId(u.id);const{data:aq,error}=await s.from("aquariums").select("id,name,net_volume_l,aquarium_type,water_type,water_source,substrate_name,target_temperature_c,height_cm").order("created_at");if(error)setMsg(error.message);else setAquariums((aq||[]) as Aquarium[])})()},[]);
+ useEffect(()=>{(async()=>{if(!isSupabaseConfigured())return;const s=createClient();const{data}=await s.auth.getUser();const u=data.user;if(!u)return;setEmail(u.email||"");setUserId(u.id);const{data:aq,error}=await s.from("aquariums").select("id,name,net_volume_l,aquarium_type,water_type,water_source,substrate_name,target_temperature_c,height_cm,setup_date").order("created_at");if(error)setMsg(error.message);else setAquariums((aq||[]) as Aquarium[])})()},[]);
  async function logout(){await createClient().auth.signOut();location.href="/auth"}
  let body:React.ReactNode;
  if(page==="Prehľad")body=<Dashboard aquariums={aquariums}/>;
