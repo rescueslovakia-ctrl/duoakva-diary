@@ -3,6 +3,13 @@
 import {useState} from "react";
 import {createClient,isSupabaseConfigured} from "@/lib/supabase/client";
 
+function localizeAuthError(message:string){
+ const normalized=message.toLowerCase();
+ if(normalized.includes("new password should be different from the old password")||normalized.includes("same password"))return "Nové heslo musí byť odlišné od pôvodného hesla.";
+ if(normalized.includes("password should be at least"))return "Heslo je príliš krátke.";
+ return message;
+}
+
 export default function ResetPasswordPage(){
  const[password,setPassword]=useState("");
  const[confirmPassword,setConfirmPassword]=useState("");
@@ -23,10 +30,10 @@ export default function ResetPasswordPage(){
    const{data:{session}}=await s.auth.getSession();
    if(!session){setMsg("Odkaz na obnovu hesla nie je platný alebo jeho platnosť vypršala. Požiadaj o nový odkaz.");return}
    const{error}=await s.auth.updateUser({password});
-   if(error){setMsg(error.message);return}
+   if(error){setMsg(localizeAuthError(error.message));return}
    setDone(true);
    setMsg("Heslo bolo úspešne zmenené. Teraz sa môžeš prihlásiť novým heslom.");
-  }catch(error){setMsg(error instanceof Error?error.message:"Heslo sa nepodarilo zmeniť. Skús to prosím znova.")}
+  }catch(error){setMsg(error instanceof Error?localizeAuthError(error.message):"Heslo sa nepodarilo zmeniť. Skús to prosím znova.")}
   finally{setBusy(false)}
  }
 
