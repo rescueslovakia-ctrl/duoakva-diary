@@ -9,8 +9,7 @@ import PlantsModule from "@/components/PlantsModule";
 import LivestockModule from "@/components/LivestockModule";
 import FertilizersModule from "@/components/FertilizersModule";
 import WaterTreatmentModule from "@/components/WaterTreatmentModule";
-import MaintenanceModule from "@/components/MaintenanceModule";
-import FertilizerDoseMaintenance from "@/components/FertilizerDoseMaintenance";
+import MaintenanceSection from "@/components/MaintenanceSection";
 import FertilizerMeasurementGuard from "@/components/FertilizerMeasurementGuard";
 import TasksModule from "@/components/TasksModule";
 import SettingsModule from "@/components/SettingsModule";
@@ -18,6 +17,8 @@ import DashboardModule from "@/components/DashboardModule";
 import PhotoDiaryModule from "@/components/PhotoDiaryModule";
 import FeedbackBubble from "@/components/FeedbackBubble";
 import MeasurementFreshnessNotice from "@/components/MeasurementFreshnessNotice";
+import PhControllerSettings from "@/components/PhControllerSettings";
+import PhControllerMeasurementStatus from "@/components/PhControllerMeasurementStatus";
 
 const nav=[["Prehľad",Home],["Akváriá",Waves],["Fotodenník",Images],["Merania",FlaskConical],["Technika",Wrench],["Rastliny",Leaf],["Osádka",Fish],["Hnojenie",Droplets],["Údržba",NotebookPen],["Úlohy",Bell],["Nastavenia",Settings]] as const;
 
@@ -29,12 +30,12 @@ export default function App(){
  if(page==="Prehľad")body=<DashboardModule aquariums={aquariums}/>;
  else if(page==="Akváriá")body=<AquariumsModule userId={userId} data={aquariums} setData={setAquariums}/>;
  else if(page==="Fotodenník")body=<PhotoDiaryModule aquariums={aquariums}/>;
- else if(page==="Merania")body=<MeasurementsModule aquariums={aquariums}/>;
- else if(page==="Technika")body=<EquipmentModule aquariums={aquariums}/>;
+ else if(page==="Merania")body=<><PhControllerMeasurementStatus aquariums={aquariums}/><MeasurementsModule aquariums={aquariums}/></>;
+ else if(page==="Technika")body=<><EquipmentModule aquariums={aquariums}/><PhControllerSettings aquariums={aquariums}/></>;
  else if(page==="Rastliny")body=<PlantsModule aquariums={aquariums}/>;
  else if(page==="Osádka")body=<LivestockModule aquariums={aquariums}/>;
  else if(page==="Hnojenie")body=<><MeasurementFreshnessNotice aquariums={aquariums}/><FertilizerMeasurementGuard aquariums={aquariums}/><FertilizersModule aquariums={aquariums}/><WaterTreatmentModule aquariums={aquariums}/></>;
- else if(page==="Údržba")body=<><MeasurementFreshnessNotice aquariums={aquariums}/><MaintenanceModule aquariums={aquariums}/><FertilizerDoseMaintenance aquariums={aquariums}/></>;
+ else if(page==="Údržba")body=<MaintenanceSection aquariums={aquariums}/>;
  else if(page==="Úlohy")body=<TasksModule aquariums={aquariums}/>;
  else if(page==="Nastavenia")body=<SettingsModule email={email}/>;
  else body=null;
