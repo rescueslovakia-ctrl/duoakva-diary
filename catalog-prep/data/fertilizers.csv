@@ -1,1 +1,5 @@
 manufacturer,product_name,product_variant,category,default_dose_ml,default_dose_volume_l,dose_frequency,calculation_safe,source_name,source_url,verification_status,verified_at,notes
+Seachem,Flourish Phosphorus,,phosphorus,2.5,80,once or twice weekly,true,Seachem,https://www.seachem.com/flourish-phosphorus.php,verified,2026-08-24,"Official page states 4500 mg/L phosphate solution and beginner dose effect."
+Seachem,Flourish Nitrogen,,nitrogen,2.5,160,twice weekly,true,Seachem,https://www.seachem.com/flourish-nitrogen.php,verified,2026-08-24,"Official page states beginner dose and nitrate-equivalent nitrogen effect; basis must remain NO3-equivalent, not literal nitrate concentration."
+Seachem,Flourish Iron,,iron,5,200,as needed,true,Seachem,https://www.seachem.com/flourish-iron.php,verified,2026-08-24,"Official page states standard dose raises Fe by 0.25 mg/L."
+Seachem,Flourish Potassium,,potassium,5,125,2-3 times weekly,false,Seachem,https://www.seachem.com/flourish-potassium.php,review_required,2026-08-24,"Current indexed official Seachem pages conflict: 2.0 vs 1.66 mg/L K for the same nominal dose. Do not use for automatic math until manually resolved."
