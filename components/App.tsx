@@ -19,6 +19,7 @@ import FeedbackBubble from "@/components/FeedbackBubble";
 import MeasurementFreshnessNotice from "@/components/MeasurementFreshnessNotice";
 import PhControllerSettings from "@/components/PhControllerSettings";
 import PhControllerMeasurementStatus from "@/components/PhControllerMeasurementStatus";
+import MeasurementBiologyStatus from "@/components/MeasurementBiologyStatus";
 
 const nav=[["Prehľad",Home],["Akváriá",Waves],["Fotodenník",Images],["Merania",FlaskConical],["Technika",Wrench],["Rastliny",Leaf],["Osádka",Fish],["Hnojenie",Droplets],["Údržba",NotebookPen],["Úlohy",Bell],["Nastavenia",Settings]] as const;
 
@@ -30,7 +31,7 @@ export default function App(){
  if(page==="Prehľad")body=<DashboardModule aquariums={aquariums}/>;
  else if(page==="Akváriá")body=<AquariumsModule userId={userId} data={aquariums} setData={setAquariums}/>;
  else if(page==="Fotodenník")body=<PhotoDiaryModule aquariums={aquariums}/>;
- else if(page==="Merania")body=<><PhControllerMeasurementStatus aquariums={aquariums}/><MeasurementsModule aquariums={aquariums}/></>;
+ else if(page==="Merania")body=<><PhControllerMeasurementStatus aquariums={aquariums}/><MeasurementBiologyStatus aquariums={aquariums}/><MeasurementsModule aquariums={aquariums}/></>;
  else if(page==="Technika")body=<><EquipmentModule aquariums={aquariums}/><PhControllerSettings aquariums={aquariums}/></>;
  else if(page==="Rastliny")body=<PlantsModule aquariums={aquariums}/>;
  else if(page==="Osádka")body=<LivestockModule aquariums={aquariums}/>;
