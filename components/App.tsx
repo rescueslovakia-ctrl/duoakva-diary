@@ -14,6 +14,7 @@ import TasksModule from "@/components/TasksModule";
 import SettingsModule from "@/components/SettingsModule";
 import DashboardModule from "@/components/DashboardModule";
 import PhotoDiaryModule from "@/components/PhotoDiaryModule";
+import FeedbackBubble from "@/components/FeedbackBubble";
 
 const nav=[["Prehľad",Home],["Akváriá",Waves],["Fotodenník",Images],["Merania",FlaskConical],["Technika",Wrench],["Rastliny",Leaf],["Osádka",Fish],["Hnojenie",Droplets],["Údržba",NotebookPen],["Úlohy",Bell],["Nastavenia",Settings]] as const;
 
@@ -34,5 +35,5 @@ export default function App(){
  else if(page==="Úlohy")body=<TasksModule aquariums={aquariums}/>;
  else if(page==="Nastavenia")body=<SettingsModule email={email}/>;
  else body=null;
- return <div className="app"><aside><div className="logo">DuoAkva <b>Diary</b></div>{nav.map(([n,I])=><button className={page===n?"on":""} key={n} onClick={()=>setPage(n)}><I size={18}/>{n}</button>)}{email&&<button onClick={logout}><LogOut size={18}/>Odhlásiť</button>}</aside><main><header><div><small>DUOAKVA DIARY</small><h1>{page}</h1></div>{email&&<span className="account">{email}</span>}</header>{msg&&<div className="notice">{msg}</div>}{body}<footer className="app-legal-footer"><div>Duo R&amp;M s. r. o. · IČO 53658132 · <a href="mailto:info@duoakva.sk">info@duoakva.sk</a></div><div><a href="/prevadzkovatel">Prevádzkovateľ</a><a href="/ochrana-osobnych-udajov">Ochrana osobných údajov</a><a href="/cookies">Cookies</a><a href="/podmienky-pouzivania">Podmienky používania</a></div></footer></main></div>
+ return <div className="app"><aside><div className="logo">DuoAkva <b>Diary</b></div>{nav.map(([n,I])=><button className={page===n?"on":""} key={n} onClick={()=>setPage(n)}><I size={18}/>{n}</button>)}{email&&<button onClick={logout}><LogOut size={18}/>Odhlásiť</button>}</aside><main><header><div><small>DUOAKVA DIARY</small><h1>{page}</h1></div>{email&&<span className="account">{email}</span>}</header>{msg&&<div className="notice">{msg}</div>}{body}<footer className="app-legal-footer"><div>Duo R&amp;M s. r. o. · IČO 53658132 · <a href="mailto:info@duoakva.sk">info@duoakva.sk</a></div><div><a href="/prevadzkovatel">Prevádzkovateľ</a><a href="/ochrana-osobnych-udajov">Ochrana osobných údajov</a><a href="/cookies">Cookies</a><a href="/podmienky-pouzivania">Podmienky používania</a></div></footer></main><FeedbackBubble userId={userId} email={email} page={page}/></div>
 }
