@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {FlaskConical} from "lucide-react";
+import {BellPlus,FlaskConical} from "lucide-react";
 import {createClient} from "@/lib/supabase/client";
 import type {Aquarium} from "@/components/AquariumsModule";
 
@@ -13,7 +13,7 @@ const meta:Record<string,{label:string;unit:string;high:(v:number)=>boolean}>={
 };
 
 export default function WaterChangeRetestAlerts({aquariums}:{aquariums:Aquarium[]}){
- const[alerts,setAlerts]=useState<Alert[]>([]);
+ const[alerts,setAlerts]=useState<Alert[]>([]);const[taskBusy,setTaskBusy]=useState<string|null>(null);const[msg,setMsg]=useState('');
  useEffect(()=>{if(aquariums.length)load();else setAlerts([])},[aquariums]);
  async function load(){const s=createClient();const out:Alert[]=[];for(const aq of aquariums){
   const[w,m]=await Promise.all([
@@ -31,9 +31,10 @@ export default function WaterChangeRetestAlerts({aquariums}:{aquariums:Aquarium[
   }
  }
  setAlerts(out)}
+ async function createTask(list:Alert[]){const first=list[0];if(!first)return;setTaskBusy(first.aquariumId);setMsg('');const labels=list.map(x=>x.label).join(', ');const title=`Kontrolné meranie po výmene vody – ${labels}`;const details=list.map(x=>x.current==null?`${x.label}: pred výmenou ${x.before} ${x.unit}`:`${x.label}: po výmene stále ${x.current} ${x.unit} (pred výmenou ${x.before} ${x.unit})`).join('; ');const s=createClient();const{data:existing}=await s.from('aquarium_tasks').select('id').eq('aquarium_id',first.aquariumId).eq('status','open').eq('title',title).limit(1);if(existing?.length){setTaskBusy(null);setMsg('Táto kontrolná úloha už medzi aktívnymi úlohami existuje.');return}const{error}=await s.from('aquarium_tasks').insert({aquarium_id:first.aquariumId,title,notes:`Vytvorené z upozornenia po výmene vody. ${details}`,due_at:new Date().toISOString(),recurrence:'none',status:'open'});setTaskBusy(null);setMsg(error?'Úlohu sa nepodarilo vytvoriť. Skús to prosím znova.':'Kontrolná úloha bola vytvorená.');}
  if(!alerts.length)return null;
  const grouped=new Map<string,Alert[]>();for(const a of alerts)grouped.set(a.aquariumId,[...(grouped.get(a.aquariumId)||[]),a]);
- return <section className="card"><div className="section-head"><div><small>KONTROLNÉ MERANIE</small><h3><FlaskConical size={18}/> Kontrola po výmene vody</h3></div></div><p className="muted">Pred výmenou vody boli niektoré parametre zvýšené. Po stabilizácii nádrže ich treba znovu overiť; upozornenie zmizne automaticky po normálnom kontrolnom výsledku.</p>{Array.from(grouped.entries()).map(([id,list])=><div className="notice" key={id}><b>⚠️ {list[0].aquariumName}</b><p>Od výmeny vody uplynulo dostatok času na kontrolné meranie. Premeraj: <b>{list.map(x=>x.label).join(', ')}</b>.</p>{list.map(x=><p key={x.code} style={{marginBottom:6}}>{x.current==null?<>• <b>{x.label}</b>: pred výmenou {x.before} {x.unit}. Urob nové kontrolné meranie.</>:<>• <b>{x.label}</b>: po výmene stále {x.current} {x.unit} (pred výmenou {x.before} {x.unit}). Hodnota zostáva zvýšená.</>}</p>)}</div>)}</section>;
+ return <section className="card"><div className="section-head"><div><small>KONTROLNÉ MERANIE</small><h3><FlaskConical size={18}/> Kontrola po výmene vody</h3></div></div><p className="muted">Pred výmenou vody boli niektoré parametre zvýšené. Po stabilizácii nádrže ich treba znovu overiť; upozornenie zmizne automaticky po normálnom kontrolnom výsledku. Ak chceš, môžeš si z upozornenia vedome vytvoriť úlohu.</p>{msg&&<div className="notice">{msg}</div>}{Array.from(grouped.entries()).map(([id,list])=><div className="notice" key={id}><b>⚠️ {list[0].aquariumName}</b><p>Od výmeny vody uplynulo dostatok času na kontrolné meranie. Premeraj: <b>{list.map(x=>x.label).join(', ')}</b>.</p>{list.map(x=><p key={x.code} style={{marginBottom:6}}>{x.current==null?<>• <b>{x.label}</b>: pred výmenou {x.before} {x.unit}. Urob nové kontrolné meranie.</>:<>• <b>{x.label}</b>: po výmene stále {x.current} {x.unit} (pred výmenou {x.before} {x.unit}). Hodnota zostáva zvýšená.</>}</p>)}<div className="form-actions" style={{marginTop:10}}><button type="button" onClick={()=>createTask(list)} disabled={taskBusy===id}><BellPlus size={15}/>{taskBusy===id?' Vytváram…':' Vytvoriť úlohu'}</button></div></div>)}</section>;
 }
 
 type ObjectEntries=Record<string,number>;
