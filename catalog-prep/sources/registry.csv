@@ -1,0 +1,16 @@
+catalog,source_name,source_type,base_url,priority,notes
+plants,Tropica Aquarium Plants,manufacturer,https://tropica.com/en/plants/,1,Primary plant identity and care profile source
+plants,Dennerle Plants,manufacturer,https://dennerleplants.com/,2,Secondary official plant profile source
+livestock,FishBase,scientific,https://www.fishbase.se/,1,Taxonomy distribution size and biological reference
+livestock,SeriouslyFish,specialist_secondary,https://www.seriouslyfish.com/,2,Aquarium husbandry profile source; critical ranges require exact profile evidence
+fertilizers,Seachem,manufacturer,https://www.seachem.com/,1,Official formulation dosing and SDS source
+fertilizers,JBL,manufacturer,https://www.jbl.de/,1,Official product and dosing source
+fertilizers,Tropica Aquarium Plants,manufacturer,https://tropica.com/en/plant-care/,1,Official fertilizer product source
+fertilizers,Easy-Life,manufacturer,https://www.easylife.eu/,1,Official fertilizer source
+fertilizers,Dennerle,manufacturer,https://dennerle.com/,1,Official fertilizer source
+fertilizers,MasterLine,manufacturer,https://masterline.ro/,1,Official fertilizer source
+equipment,EHEIM,manufacturer,https://eheim.com/,1,Official equipment specifications
+equipment,OASE,manufacturer,https://www.oase.com/,1,Official equipment specifications
+equipment,Fluval,manufacturer,https://fluvalaquatics.com/,1,Official equipment specifications
+equipment,AQUAEL,manufacturer,https://www.aquael.com/,1,Official equipment specifications
+equipment,Chihiros Aquatic Studio,manufacturer,https://www.chihirosaquaticstudio.com/,1,Official lighting and dosing equipment specifications
