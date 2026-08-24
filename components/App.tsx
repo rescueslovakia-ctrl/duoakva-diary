@@ -20,6 +20,7 @@ import MeasurementFreshnessNotice from "@/components/MeasurementFreshnessNotice"
 import PhControllerSettings from "@/components/PhControllerSettings";
 import PhControllerMeasurementStatus from "@/components/PhControllerMeasurementStatus";
 import MeasurementBiologyStatus from "@/components/MeasurementBiologyStatus";
+import WaterChangeRetestAlerts from "@/components/WaterChangeRetestAlerts";
 
 const nav=[["Prehľad",Home],["Akváriá",Waves],["Fotodenník",Images],["Merania",FlaskConical],["Technika",Wrench],["Rastliny",Leaf],["Osádka",Fish],["Hnojenie",Droplets],["Údržba",NotebookPen],["Úlohy",Bell],["Nastavenia",Settings]] as const;
 
@@ -28,10 +29,10 @@ export default function App(){
  useEffect(()=>{(async()=>{if(!isSupabaseConfigured())return;const s=createClient();const{data}=await s.auth.getUser();const u=data.user;if(!u)return;setEmail(u.email||"");setUserId(u.id);const{data:aq,error}=await s.from("aquariums").select("id,name,net_volume_l,aquarium_type,water_type,water_source,substrate_name,target_temperature_c,height_cm,setup_date").order("created_at");if(error)setMsg(error.message);else setAquariums((aq||[]) as Aquarium[])})()},[]);
  async function logout(){await createClient().auth.signOut();location.href="/"}
  let body:React.ReactNode;
- if(page==="Prehľad")body=<DashboardModule aquariums={aquariums}/>;
+ if(page==="Prehľad")body=<><DashboardModule aquariums={aquariums}/><WaterChangeRetestAlerts aquariums={aquariums}/></>;
  else if(page==="Akváriá")body=<AquariumsModule userId={userId} data={aquariums} setData={setAquariums}/>;
  else if(page==="Fotodenník")body=<PhotoDiaryModule aquariums={aquariums}/>;
- else if(page==="Merania")body=<><PhControllerMeasurementStatus aquariums={aquariums}/><MeasurementBiologyStatus aquariums={aquariums}/><MeasurementsModule aquariums={aquariums}/></>;
+ else if(page==="Merania")body=<><WaterChangeRetestAlerts aquariums={aquariums}/><PhControllerMeasurementStatus aquariums={aquariums}/><MeasurementBiologyStatus aquariums={aquariums}/><MeasurementsModule aquariums={aquariums}/></>;
  else if(page==="Technika")body=<><EquipmentModule aquariums={aquariums}/><PhControllerSettings aquariums={aquariums}/></>;
  else if(page==="Rastliny")body=<PlantsModule aquariums={aquariums}/>;
  else if(page==="Osádka")body=<LivestockModule aquariums={aquariums}/>;
