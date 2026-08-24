@@ -10,6 +10,7 @@ import LivestockModule from "@/components/LivestockModule";
 import FertilizersModule from "@/components/FertilizersModule";
 import WaterTreatmentModule from "@/components/WaterTreatmentModule";
 import MaintenanceModule from "@/components/MaintenanceModule";
+import FertilizerDoseMaintenance from "@/components/FertilizerDoseMaintenance";
 import TasksModule from "@/components/TasksModule";
 import SettingsModule from "@/components/SettingsModule";
 import DashboardModule from "@/components/DashboardModule";
@@ -32,7 +33,7 @@ export default function App(){
  else if(page==="Rastliny")body=<PlantsModule aquariums={aquariums}/>;
  else if(page==="Osádka")body=<LivestockModule aquariums={aquariums}/>;
  else if(page==="Hnojenie")body=<><MeasurementFreshnessNotice aquariums={aquariums}/><FertilizersModule aquariums={aquariums}/><WaterTreatmentModule aquariums={aquariums}/></>;
- else if(page==="Údržba")body=<><MeasurementFreshnessNotice aquariums={aquariums}/><MaintenanceModule aquariums={aquariums}/></>;
+ else if(page==="Údržba")body=<><MeasurementFreshnessNotice aquariums={aquariums}/><MaintenanceModule aquariums={aquariums}/><FertilizerDoseMaintenance aquariums={aquariums}/></>;
  else if(page==="Úlohy")body=<TasksModule aquariums={aquariums}/>;
  else if(page==="Nastavenia")body=<SettingsModule email={email}/>;
  else body=null;
