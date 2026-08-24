@@ -1,5 +1,6 @@
 import {NextRequest,NextResponse} from "next/server";
 import {createServerSupabaseClient} from "@/lib/supabase/server";
+import {isAdminUser} from "@/lib/auth/admin";
 
 export const runtime="nodejs";
 export const maxDuration=45;
@@ -15,11 +16,13 @@ export async function GET(){
   const supabase=await createServerSupabaseClient();
   const{data:{user}}=await supabase.auth.getUser();
   if(!user)return NextResponse.json({error:"Neprihlásený používateľ."},{status:401});
+  const admin=isAdminUser(user);
+  if(admin)return NextResponse.json({available:true,nextAvailableAt:null,isAdmin:true});
   const{data}=await supabase.from("photo_ai_usage").select("used_at").eq("user_id",user.id).order("used_at",{ascending:false}).limit(1);
   const last=data?.[0]?.used_at?new Date(data[0].used_at):null;
   const next=last?new Date(last.getTime()+7*24*60*60*1000):null;
   const available=!next||next.getTime()<=Date.now();
-  return NextResponse.json({available,nextAvailableAt:available?null:next?.toISOString()||null});
+  return NextResponse.json({available,nextAvailableAt:available?null:next?.toISOString()||null,isAdmin:false});
  }catch{return NextResponse.json({available:false,error:"Stav AI analýzy sa nepodarilo načítať."},{status:500})}
 }
 
@@ -31,41 +34,36 @@ export async function POST(req:NextRequest){
   const supabase=await createServerSupabaseClient();
   const{data:{user}}=await supabase.auth.getUser();
   if(!user)return NextResponse.json({error:"Neprihlásený používateľ."},{status:401});
+  const admin=isAdminUser(user);
   const{data:photo,error}=await supabase.from("aquarium_photos").select("id,aquarium_id,image_path,taken_at,note,aquariums!inner(id,name,user_id,setup_date)").eq("id",photoId).single();
   const aquarium=(photo as any)?.aquariums;
   if(error||!photo||aquarium?.user_id!==user.id)return NextResponse.json({error:"Fotografia nebola nájdená."},{status:404});
 
-  const claim=await supabase.rpc("claim_photo_ai_analysis",{p_photo_id:photoId});
-  if(claim.error)return NextResponse.json({error:"Limit analýzy sa nepodarilo overiť."},{status:500});
-  const c=claim.data?.[0];
-  if(!c?.usage_id)return NextResponse.json({error:"Bezplatná AI analýza je dostupná raz za 7 dní.",nextAvailableAt:c?.next_available_at||null},{status:429});
-  usageId=String(c.usage_id);
+  let nextAvailableAt:string|null=null;
+  if(!admin){
+   const claim=await supabase.rpc("claim_photo_ai_analysis",{p_photo_id:photoId});
+   if(claim.error)return NextResponse.json({error:"Limit analýzy sa nepodarilo overiť."},{status:500});
+   const c=claim.data?.[0];
+   if(!c?.usage_id)return NextResponse.json({error:"Bezplatná AI analýza je dostupná raz za 7 dní.",nextAvailableAt:c?.next_available_at||null},{status:429});
+   usageId=String(c.usage_id);nextAvailableAt=c?.next_available_at||null;
+  }
 
   await supabase.from("aquarium_photos").update({analysis_status:"analyzing"}).eq("id",photoId);
   const currentSigned=await supabase.storage.from("aquarium-diary").createSignedUrl(photo.image_path,300);
   if(!currentSigned.data?.signedUrl)throw new Error("image_unavailable");
-
   const prev=await supabase.from("aquarium_photos").select("id,image_path,taken_at").eq("aquarium_id",photo.aquarium_id).eq("analysis_status","completed").lt("taken_at",photo.taken_at).order("taken_at",{ascending:false}).limit(1);
-  const previousPhoto=prev.data?.[0]||null;
-  let previousUrl:string|null=null;
+  const previousPhoto=prev.data?.[0]||null;let previousUrl:string|null=null;
   if(previousPhoto){const p=await supabase.storage.from("aquarium-diary").createSignedUrl(previousPhoto.image_path,300);previousUrl=p.data?.signedUrl||null}
-
   const apiKey=process.env.OPENAI_API_KEY;if(!apiKey)throw new Error("api_key_missing");
-  const hasPrevious=!!previousUrl;
-  const aquariumAgeDays=daysBetween(aquarium?.setup_date,photo.taken_at);
-  const photoGapDays=previousPhoto?daysBetween(previousPhoto.taken_at,photo.taken_at):null;
+  const hasPrevious=!!previousUrl;const aquariumAgeDays=daysBetween(aquarium?.setup_date,photo.taken_at);const photoGapDays=previousPhoto?daysBetween(previousPhoto.taken_at,photo.taken_at):null;
   const ageContext=aquarium?.setup_date&&aquariumAgeDays!==null?`\nKONTEXT NÁDRŽE: Nádrž „${aquarium?.name||"Akvárium"}“ bola založená ${dateLabel(aquarium.setup_date)}. Aktuálna fotografia je z ${dateLabel(photo.taken_at)}; nádrž mala pri fotografovaní približne ${aquariumAgeDays} dní. Pri hodnotení zohľadni vek nádrže a prirodzenú fázu zábehu. V mladej nádrži neoznačuj bežné prechodné prejavy automaticky za vážny problém; zároveň neprehliadni jasné vizuálne známky zhoršenia.`:`\nKONTEXT NÁDRŽE: Dátum založenia nie je zadaný, preto vek nádrže pri hodnotení nepredpokladaj.`;
   const comparisonContext=hasPrevious&&previousPhoto?` Predchádzajúca analyzovaná fotografia je z ${dateLabel(previousPhoto.taken_at)} a medzi fotografiami je približne ${photoGapDays} dní. Pri hodnotení trendu zohľadni aj tento časový odstup.`:"";
   const prompt=`Analyzuj fotografiu celého akvária ako súčasť dlhodobého akvaristického fotodenníka. Prvý obrázok je AKTUÁLNA fotografia.${hasPrevious?" Druhý obrázok je PREDCHÁDZAJÚCA analyzovaná fotografia tej istej nádrže; porovnaj ich a popíš iba vizuálne podložené zmeny.":" Predchádzajúca fotografia nie je k dispozícii."}${ageContext}${comparisonContext}\nBuď konzervatívny. Z fotografie neurčuj chemické parametre vody ani diagnózu bez vizuálneho podkladu. Vek nádrže používaj iba ako kontext pre interpretáciu toho, čo je na fotografii skutočne viditeľné, nie ako dôkaz problému alebo jeho absencie.\nVráť VÝHRADNE platný JSON bez markdownu s kľúčmi: summary, condition, plant_cover_percent, algae_detected, algae_types, algae_severity, water_clarity, glass_cleanliness, plant_condition, observations, suggested_actions, confidence, trend, change_summary, internal_trend_score.\ncondition: good|watch|attention. algae_severity: none|mild|moderate|strong|unknown. water_clarity: clear|slightly_hazy|hazy|unknown. glass_cleanliness: clean|minor_deposits|dirty|unknown. plant_condition: good|mixed|poor|unknown. confidence: low|medium|high. trend: improved|stable|worse|unknown. plant_cover_percent 0-100 alebo null. change_summary je krátke porovnanie v čase alebo null. internal_trend_score 0-100 je iba interná vizuálna metrika.\nPri algae_types používaj len vizuálne pravdepodobné typy. Odporúčania majú byť krátke a praktické; neodporúčaj dávkovanie liečiv alebo chémie iba podľa fotografie.`;
-  const content:any[]=[{type:"input_text",text:prompt},{type:"input_image",image_url:currentSigned.data.signedUrl,detail:"low"}];
-  if(previousUrl)content.push({type:"input_image",image_url:previousUrl,detail:"low"});
-  const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},body:JSON.stringify({model:process.env.OPENAI_VISION_MODEL||"gpt-5.4-mini",input:[{role:"user",content}],max_output_tokens:1200})});
-  if(!r.ok)throw new Error(`vision_${r.status}`);
-  const j=await r.json();const text=(j.output||[]).flatMap((o:any)=>o.content||[]).find((x:any)=>x.type==="output_text")?.text||j.output_text||"";
-  let parsed:any;try{parsed=JSON.parse(text)}catch{const m=text.match(/\{[\s\S]*\}/);if(!m)throw new Error("invalid_json");parsed=JSON.parse(m[0])}
-  const analysis=normalize(parsed,hasPrevious);
-  await supabase.from("aquarium_photos").update({analysis_status:"completed",analysis_data:analysis}).eq("id",photoId);
-  return NextResponse.json({analysis,nextAvailableAt:c.next_available_at});
+  const content:any[]=[{type:"input_text",text:prompt},{type:"input_image",image_url:currentSigned.data.signedUrl,detail:"low"}];if(previousUrl)content.push({type:"input_image",image_url:previousUrl,detail:"low"});
+  const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Content-Type":"application/json","Authorization":`Bearer ${apiKey}`},body:JSON.stringify({model:process.env.OPENAI_VISION_MODEL||"gpt-5.4-mini",input:[{role:"user",content}],max_output_tokens:1200})});if(!r.ok)throw new Error(`vision_${r.status}`);
+  const j=await r.json();const text=(j.output||[]).flatMap((o:any)=>o.content||[]).find((x:any)=>x.type==="output_text")?.text||j.output_text||"";let parsed:any;try{parsed=JSON.parse(text)}catch{const m=text.match(/\{[\s\S]*\}/);if(!m)throw new Error("invalid_json");parsed=JSON.parse(m[0])}
+  const analysis=normalize(parsed,hasPrevious);await supabase.from("aquarium_photos").update({analysis_status:"completed",analysis_data:analysis}).eq("id",photoId);
+  return NextResponse.json({analysis,nextAvailableAt,isAdmin:admin});
  }catch{
   try{const supabase=await createServerSupabaseClient();if(photoId)await supabase.from("aquarium_photos").update({analysis_status:"failed"}).eq("id",photoId);if(usageId)await supabase.rpc("release_photo_ai_analysis",{p_usage_id:usageId})}catch{}
   return NextResponse.json({error:"Automatická analýza fotografie sa nepodarila. Kredit nebol spotrebovaný."},{status:500});
