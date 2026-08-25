@@ -1,6 +1,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig:NextConfig={
+  outputFileTracingIncludes:{'/*':['./catalog-data/**/*']},
   async headers(){
     return [{
       source:'/:path*',
