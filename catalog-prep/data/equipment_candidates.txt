@@ -1,0 +1,122 @@
+external_filter|EHEIM|professionel 4+ 250|
+external_filter|EHEIM|professionel 4+ 350|
+external_filter|EHEIM|professionel 4+ 600|
+external_filter|EHEIM|professionel 4+ 250T|
+external_filter|EHEIM|professionel 4+ 350T|
+external_filter|EHEIM|classic 150|
+external_filter|EHEIM|classic 250|
+external_filter|EHEIM|classic 350|
+external_filter|EHEIM|classic 600|
+external_filter|EHEIM|ecco pro 130|
+external_filter|EHEIM|ecco pro 200|
+external_filter|EHEIM|ecco pro 300|
+external_filter|EHEIM|eXperience 150|
+external_filter|EHEIM|eXperience 250|
+external_filter|EHEIM|eXperience 350|
+external_filter|EHEIM|professionel 5e 350|
+external_filter|EHEIM|professionel 5e 450|
+external_filter|EHEIM|professionel 5e 600T|
+external_filter|Fluval|107|
+external_filter|Fluval|207|
+external_filter|Fluval|307|
+external_filter|Fluval|407|
+external_filter|Fluval|FX2|
+external_filter|Fluval|FX4|
+external_filter|Fluval|FX6|
+external_filter|Fluval|G3|
+external_filter|Fluval|G6|
+external_filter|OASE|BioMaster 2 250|
+external_filter|OASE|BioMaster 2 350|
+external_filter|OASE|BioMaster 2 600|
+external_filter|OASE|BioMaster 2 850|
+external_filter|OASE|BioMaster 2 Thermo 250|
+external_filter|OASE|BioMaster 2 Thermo 350|
+external_filter|OASE|BioMaster 2 Thermo 600|
+external_filter|OASE|BioMaster 2 Thermo 850|
+external_filter|OASE|FiltoSmart 60|
+external_filter|OASE|FiltoSmart 100|
+external_filter|OASE|FiltoSmart 200|
+external_filter|OASE|FiltoSmart 300|
+external_filter|OASE|FiltoSmart Thermo 100|
+external_filter|OASE|FiltoSmart Thermo 200|
+external_filter|OASE|FiltoSmart Thermo 300|
+filter|AQUAEL|Ultramax 1000|
+filter|AQUAEL|Ultramax 1500|
+filter|AQUAEL|Ultramax 2000|
+filter|AQUAEL|Maxi Kani 80|
+filter|AQUAEL|Maxi Kani 120|
+filter|AQUAEL|Maxi Kani 150|
+filter|AQUAEL|Maxi Kani 250|
+filter|AQUAEL|VersaMax FZN-1|
+filter|AQUAEL|VersaMax FZN-2|
+filter|AQUAEL|VersaMax FZN-3|
+filter|AQUAEL|Turbo Filter 500|
+filter|AQUAEL|Turbo Filter 1000|
+filter|AQUAEL|Turbo Filter 1500|
+filter|AQUAEL|Turbo Filter 2000|
+external_filter|JBL|CristalProfi e402 greenline|
+external_filter|JBL|CristalProfi e702 greenline|
+external_filter|JBL|CristalProfi e902 greenline|
+external_filter|JBL|CristalProfi e1502 greenline|
+external_filter|JBL|CristalProfi e1902 greenline|
+external_filter|Tetra|EX 400 Plus|
+external_filter|Tetra|EX 600 Plus|
+external_filter|Tetra|EX 800 Plus|
+external_filter|Tetra|EX 1000 Plus|
+external_filter|Tetra|EX 1200 Plus|
+light|Chihiros|WRGB II Slim 30|
+light|Chihiros|WRGB II Slim 45|
+light|Chihiros|WRGB II Slim 60|
+light|Chihiros|WRGB II Slim 90|
+light|Chihiros|WRGB II Slim 120|
+light|Chihiros|WRGB II 30|
+light|Chihiros|WRGB II 45|
+light|Chihiros|WRGB II 60|
+light|Chihiros|WRGB II 90|
+light|Chihiros|WRGB II 120|
+light|Chihiros|A Series II A301|
+light|Chihiros|A Series II A401|
+light|Chihiros|A Series II A501|
+light|Chihiros|A Series II A601|
+light|Chihiros|A Series II A801|
+light|Chihiros|A Series II A901|
+light|Chihiros|A Series II A1201|
+light|Chihiros|B Line 30B|
+light|Chihiros|B Line 45B|
+light|Chihiros|B Line 60B|
+light|Chihiros|B Line 90B|
+light|Chihiros|B Line 120B|
+light|Twinstar|Light 30B|
+light|Twinstar|Light 45B|
+light|Twinstar|Light 60B|
+light|Twinstar|Light 90B|
+light|Twinstar|Light 120B|
+light|Sinkor|LED 30|
+light|Sinkor|LED 45|
+light|Sinkor|LED 60|
+light|Sinkor|LED 90|
+light|Sinkor|LED 120|
+heater|EHEIM|thermocontrol 25|
+heater|EHEIM|thermocontrol 50|
+heater|EHEIM|thermocontrol 75|
+heater|EHEIM|thermocontrol 100|
+heater|EHEIM|thermocontrol 125|
+heater|EHEIM|thermocontrol 150|
+heater|EHEIM|thermocontrol 200|
+heater|EHEIM|thermocontrol 250|
+heater|EHEIM|thermocontrol 300|
+heater|AQUAEL|Ultra Heater 25W|
+heater|AQUAEL|Ultra Heater 50W|
+heater|AQUAEL|Ultra Heater 75W|
+heater|AQUAEL|Ultra Heater 100W|
+heater|AQUAEL|Ultra Heater 150W|
+doser|Chihiros|Dosing Pump Mate|
+doser|Chihiros|Dosing Pump 4 Head|
+controller|INVITAL|pH Controller|
+controller|INVITAL|Nutribot|
+pump|EHEIM|compactON 300|
+pump|EHEIM|compactON 600|
+pump|EHEIM|compactON 1000|
+pump|EHEIM|compactON 2100|
+pump|EHEIM|compactON 3000|
+pump|EHEIM|compactON 5000|
