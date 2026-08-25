@@ -1,0 +1,117 @@
+Paracheirodon axelrodi|Cardinal tetra|fish
+Boraras brigittae|Chili rasbora|fish
+Trigonostigma heteromorpha|Harlequin rasbora|fish
+Danio margaritatus|Celestial pearl danio|fish
+Gastrodermus pygmaeus|Pygmy corydoras|fish
+Mikrogeophagus ramirezi|Ram cichlid|fish
+Danio rerio|Zebra danio|fish
+Pterophyllum scalare|Freshwater angelfish|fish
+Trichogaster labiosa|Thick-lipped gourami|fish
+Carassius auratus|Goldfish|fish
+Pangasianodon hypophthalmus|Iridescent shark catfish|fish
+Paracheirodon innesi|Neon tetra|fish
+Hyphessobrycon amandae|Ember tetra|fish
+Hyphessobrycon eques|Serpae tetra|fish
+Hyphessobrycon herbertaxelrodi|Black neon tetra|fish
+Hemigrammus bleheri|Rummy-nose tetra|fish
+Petitella georgiae|False rummy-nose tetra|fish
+Gymnocorymbus ternetzi|Black skirt tetra|fish
+Thayeria boehlkei|Penguin tetra|fish
+Nematobrycon palmeri|Emperor tetra|fish
+Moenkhausia pittieri|Diamond tetra|fish
+Hasemania nana|Silvertip tetra|fish
+Pristella maxillaris|X-ray tetra|fish
+Boraras merah|Phoenix rasbora|fish
+Boraras maculatus|Dwarf rasbora|fish
+Boraras urophthalmoides|Exclamation point rasbora|fish
+Trigonostigma espei|Lambchop rasbora|fish
+Trigonostigma hengeli|Glowlight rasbora|fish
+Rasbora einthovenii|Brilliant rasbora|fish
+Danio erythromicron|Emerald dwarf rasbora|fish
+Devario aequipinnatus|Giant danio|fish
+Tanichthys albonubes|White cloud mountain minnow|fish
+Pethia conchonius|Rosy barb|fish
+Puntigrus tetrazona|Tiger barb|fish
+Pethia padamya|Odessa barb|fish
+Desmopuntius pentazona|Fiveband barb|fish
+Sahyadria denisonii|Denison barb|fish
+Puntius titteya|Cherry barb|fish
+Pethia nigrofasciata|Black ruby barb|fish
+Corydoras paleatus|Peppered corydoras|fish
+Corydoras aeneus|Bronze corydoras|fish
+Corydoras sterbai|Sterbai corydoras|fish
+Corydoras panda|Panda corydoras|fish
+Corydoras julii|Julii corydoras|fish
+Corydoras trilineatus|Three stripe corydoras|fish
+Corydoras habrosus|Salt and pepper corydoras|fish
+Corydoras hastatus|Dwarf corydoras|fish
+Brochis splendens|Emerald cory|fish
+Otocinclus vittatus|Otocinclus|fish
+Ancistrus cirrhosus|Bristlenose pleco|fish
+Hypancistrus zebra|Zebra pleco|fish
+Peckoltia compta|Leopard frog pleco|fish
+Panaqolus maccus|Clown pleco|fish
+Crossocheilus oblongus|Siamese algae eater|fish
+Gyrinocheilus aymonieri|Chinese algae eater|fish
+Pangio kuhlii|Kuhli loach|fish
+Chromobotia macracanthus|Clown loach|fish
+Botia striata|Zebra loach|fish
+Yasuhikotakia sidthimunki|Dwarf chain loach|fish
+Poecilia reticulata|Guppy|fish
+Poecilia wingei|Endler guppy|fish
+Xiphophorus helleri|Swordtail|fish
+Xiphophorus maculatus|Platy|fish
+Poecilia sphenops|Molly|fish
+Poecilia latipinna|Sailfin molly|fish
+Trichopodus leerii|Pearl gourami|fish
+Trichopodus trichopterus|Three spot gourami|fish
+Trichogaster chuna|Honey gourami|fish
+Betta splendens|Siamese fighting fish|fish
+Colisa fasciata|Banded gourami|fish
+Macropodus opercularis|Paradise fish|fish
+Apistogramma cacatuoides|Cockatoo dwarf cichlid|fish
+Apistogramma agassizii|Agassiz dwarf cichlid|fish
+Apistogramma borellii|Umbrella cichlid|fish
+Mikrogeophagus altispinosus|Bolivian ram|fish
+Pelvicachromis pulcher|Kribensis|fish
+Cleithracara maronii|Keyhole cichlid|fish
+Symphysodon aequifasciatus|Discus|fish
+Heros efasciatus|Severum|fish
+Amatitlania nigrofasciata|Convict cichlid|fish
+Labidochromis caeruleus|Electric yellow cichlid|fish
+Pseudotropheus socolofi|Powder blue cichlid|fish
+Aulonocara baenschi|Sunshine peacock|fish
+Neolamprologus multifasciatus|Multifasciatus shell dweller|fish
+Julidochromis transcriptus|Masked julie|fish
+Oryzias woworae|Daisy's ricefish|fish
+Oryzias latipes|Medaka|fish
+Aplocheilus lineatus|Striped panchax|fish
+Epiplatys annulatus|Clown killifish|fish
+Nothobranchius rachovii|Rachow's nothobranch|fish
+Fundulopanchax gardneri|Gardner's killifish|fish
+Melanotaenia praecox|Dwarf neon rainbowfish|fish
+Melanotaenia boesemani|Boesemani rainbowfish|fish
+Pseudomugil gertrudae|Spotted blue-eye|fish
+Pseudomugil luminatus|Red neon blue-eye|fish
+Iriatherina werneri|Threadfin rainbowfish|fish
+Tateurndina ocellicauda|Peacock gudgeon|fish
+Stiphodon ornatus|Rainbow stiphodon|fish
+Stiphodon semoni|Blue neon goby|fish
+Brachygobius doriae|Bumblebee goby|fish
+Badis badis|Blue badis|fish
+Dario dario|Scarlet badis|fish
+Channa andrao|Andrao snakehead|fish
+Neocaridina davidi|Cherry shrimp|shrimp
+Caridina multidentata|Amano shrimp|shrimp
+Caridina cantonensis|Bee shrimp|shrimp
+Caridina dennerli|Cardinal shrimp|shrimp
+Caridina mariae|Tiger shrimp|shrimp
+Macrobrachium dayanum|Indian whisker shrimp|shrimp
+Neritina natalensis|Zebra nerite snail|snail
+Vittina semiconica|Red racer nerite|snail
+Clithon corona|Horned nerite snail|snail
+Planorbella duryi|Ramshorn snail|snail
+Physella acuta|Bladder snail|snail
+Melanoides tuberculata|Malaysian trumpet snail|snail
+Tylomelania zemis|Rabbit snail|snail
+Pomacea diffusa|Mystery snail|snail
