@@ -1,0 +1,6 @@
+entity_type,canonical_name,alias,source_name,verification_status,notes
+plant,Eleocharis pusilla 'Mini',Eleocharis acicularis 'Mini',Tropica,verified,"Historical/trade name still widely used."
+plant,Micranthemum callitrichoides 'Cuba',Hemianthus callitrichoides 'Cuba',Tropica,verified,"Older aquarium trade/botanical name used on previous product labels."
+plant,Rotala rotundifolia,Rotala indica,Tropica,verified,"Tropica explicitly notes the synonym/trade usage."
+livestock,Gastrodermus pygmaeus,Corydoras pygmaeus,FishBase,verified,"FishBase currently displays Gastrodermus pygmaeus while Corydoras pygmaeus remains the common aquarium-trade name."
+livestock,Danio margaritatus,Celestichthys margaritatus,FishBase,partial,"Legacy taxonomic combination; keep for search only, not as canonical scientific name."
