@@ -1,0 +1,113 @@
+Seachem|Flourish|micronutrients
+Seachem|Flourish Trace|trace
+Seachem|Flourish Iron|iron
+Seachem|Flourish Potassium|potassium
+Seachem|Flourish Nitrogen|nitrogen
+Seachem|Flourish Phosphorus|phosphorus
+Seachem|Flourish Excel|carbon
+Seachem|Flourish Advance|biostimulant
+Seachem|Flourish Tabs|root_tabs
+Seachem|Aquavitro Envy|micronutrients
+Seachem|Aquavitro Propel|iron
+Seachem|Aquavitro Activate|phosphorus
+Seachem|Aquavitro Synthesis|nitrogen
+Seachem|Aquavitro Premier|conditioner
+Tropica|Premium Nutrition|micronutrients
+Tropica|Specialised Nutrition|complete_npk
+Tropica|Nutrition Capsules|root_tabs
+Easy-Life|ProFito|micronutrients
+Easy-Life|Ferro|iron
+Easy-Life|Potassium|potassium
+Easy-Life|Nitro|nitrogen
+Easy-Life|Fosfo|phosphorus
+Easy-Life|GreenScape|complete_npk
+Easy-Life|EasyCarbo Bio|carbon
+Easy-Life|Root Sticks|root_tabs
+JBL|ProScape N Macroelements|nitrogen
+JBL|ProScape P Macroelements|phosphorus
+JBL|ProScape K Macroelements|potassium
+JBL|ProScape Mg Macroelements|magnesium
+JBL|ProScape Fe +Microelements|micronutrients
+JBL|Ferropol|micronutrients
+JBL|Ferropol 24|micronutrients
+JBL|7+13 Kugeln|root_tabs
+JBL|ProFlora Ferropol Tabs|root_tabs
+Dennerle|Plant Elixir|complete
+Dennerle|V30 Complete|micronutrients
+Dennerle|E15 FerActiv|iron
+Dennerle|S7 VitaMix|micronutrients
+Dennerle|NPK Booster|complete_npk
+Dennerle|Carbo Elixier Bio|carbon
+Dennerle|Power Tabs|root_tabs
+Dennerle|Root Tabs|root_tabs
+MasterLine|All In One Golden|complete_npk
+MasterLine|All In One Lean|complete_npk
+MasterLine|All In One Soil|complete_npk
+MasterLine|I|micronutrients
+MasterLine|II|macronutrients
+MasterLine|Carbo|carbon
+MasterLine|Nitrate|nitrogen
+MasterLine|Phosphate|phosphorus
+MasterLine|Potassium|potassium
+MasterLine|Iron|iron
+ADA|Green Brighty Neutral K|potassium
+ADA|Green Brighty Nitrogen|nitrogen
+ADA|Green Brighty Mineral|micronutrients
+ADA|Green Brighty Iron|iron
+ADA|Green Brighty Plus|micronutrients
+ADA|Brighty K|potassium
+ADA|Bottom Plus|root_tabs
+ADA|Multi Bottom|root_tabs
+ADA|Iron Bottom|root_tabs
+The 2Hr Aquarist|APT Complete|complete_npk
+The 2Hr Aquarist|APT 3|complete_npk
+The 2Hr Aquarist|APT 1|micronutrients
+The 2Hr Aquarist|APT Zero|micronutrients
+The 2Hr Aquarist|APT Jazz|root_tabs
+The 2Hr Aquarist|APT e|complete_npk
+Brightwell Aquatics|FlorinMulti|micronutrients
+Brightwell Aquatics|FlorinGro|nitrogen
+Brightwell Aquatics|Florin-K|potassium
+Brightwell Aquatics|Florin-P|phosphorus
+Brightwell Aquatics|Florin-Fe|iron
+Brightwell Aquatics|FlorinAxis|carbon
+Brightwell Aquatics|FlorinBase|root_tabs
+sera|florena|micronutrients
+sera|flore 1 carbo|carbon
+sera|flore 2 ferro|iron
+sera|flore 3 vital|micronutrients
+sera|flore 4 plant|complete
+sera|floredepot|substrate_fertilizer
+Tetra|PlantaMin|micronutrients
+Tetra|Crypto|root_tabs
+Tetra|InitialSticks|substrate_fertilizer
+Tetra|CO2 Plus|carbon
+API|Leaf Zone|micronutrients
+API|CO2 Booster|carbon
+API|Root Tabs|root_tabs
+Aquario|Neo Solution 1|micronutrients
+Aquario|Neo Solution 2|macronutrients
+Aquario|Neo Solution K|potassium
+Aquario|Neo Plants Tab|root_tabs
+Aquario|Neo Booster Plants|biostimulant
+INVITAL|Ferox|micronutrients
+INVITAL|Macro|complete_npk
+INVITAL|Carbon|carbon
+INVITAL|Iron|iron
+INVITAL|Potassium|potassium
+INVITAL|Phosphorus|phosphorus
+INVITAL|Nitrogen|nitrogen
+INVITAL|Root Caps|root_tabs
+Green Aqua|Micro|micronutrients
+Green Aqua|Macro|macronutrients
+Green Aqua|Carbo|carbon
+Green Aqua|GH Booster|mineral
+Colombo|FloraGrow Pro|complete
+Colombo|FloraGrow Carbo|carbon
+Colombo|FloraGrow Fe Tabs|root_tabs
+Aquaforest|AF Micro|micronutrients
+Aquaforest|AF Macro|macronutrients
+Aquaforest|AF K Boost|potassium
+Aquaforest|AF Fe Boost|iron
+Aquaforest|AF PO4 Boost|phosphorus
+Aquaforest|AF N Boost|nitrogen
