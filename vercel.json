@@ -1,1 +1,14 @@
-{"crons":[{"path":"/api/task-reminders","schedule":"0 6 * * *"}]}
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": {
+      "catalog-prep": false
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/task-reminders",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}
