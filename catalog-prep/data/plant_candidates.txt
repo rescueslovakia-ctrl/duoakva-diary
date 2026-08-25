@@ -1,0 +1,30 @@
+Anubias barteri var. nana|Nana|Tropica
+Anubias barteri var. nana|Pangolino|Tropica
+Anubias barteri var. nana|Bonsai|Tropica
+Cryptocoryne parva||Tropica
+Cryptocoryne beckettii|Petchii|Tropica
+Cryptocoryne crispatula|Balansae|Tropica
+Cryptocoryne albida|Brown|Tropica
+Cryptocoryne nurii|Rosen Maiden|Tropica
+Echinodorus|Reni|Tropica
+Echinodorus|Red Diamond|Tropica
+Echinodorus|Barthii|Tropica
+Echinodorus|Harbich|Tropica
+Ludwigia arcuata||Tropica
+Ludwigia inclinata|Cuba|Tropica
+Ludwigia senegalensis||Tropica
+Rotala rotundifolia|Orange Juice|Tropica
+Rotala sp.|Blood Red|Tropica
+Rotala sp.|Green|Tropica
+Pogostemon erectus||Tropica
+Pogostemon helferi||Tropica
+Pogostemon deccanensis||Tropica
+Bacopa salzmannii|Purple|Tropica
+Bacopa monnieri|Compact|Tropica
+Bolbitis heudelotii||Tropica
+Microsorum pteropus|Trident|Tropica
+Microsorum pteropus|Narrow|Tropica
+Microsorum pteropus|Windelov|Tropica
+Taxiphyllum barbieri|Java moss|Tropica
+Vesicularia montagnei|Christmas moss|Tropica
+Vesicularia ferriei|Weeping moss|Tropica
