@@ -1,0 +1,135 @@
+"use client";
+
+import {useEffect,useMemo,useState} from "react";
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ReferenceArea,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+import {createClient} from "@/lib/supabase/client";
+import type {Aquarium} from "@/components/AquariumsModule";
+import MeasurementsModule from "@/components/MeasurementsModule";
+import PhControllerMeasurementStatus from "@/components/PhControllerMeasurementStatus";
+import MeasurementBiologyStatus from "@/components/MeasurementBiologyStatus";
+
+const fields=[
+  ["ph","pH",""],["gh","GH","°dGH"],["kh","KH","°dKH"],["no2","NO₂","mg/l"],
+  ["no3","NO₃","mg/l"],["nh3","NH₃","mg/l"],["nh4","NH₄","mg/l"],["po4","PO₄","mg/l"],
+  ["fe","Fe","mg/l"],["k","K","mg/l"],["mg","Mg","mg/l"],["ca","Ca","mg/l"],
+  ["tds","TDS","ppm"],["ec","Vodivosť","µS/cm"],["temperature","Teplota","°C"],["o2","O₂","mg/l"],
+] as const;
+
+const colors=["#0f766e","#2563eb","#dc2626","#9333ea","#d97706","#0891b2","#65a30d","#db2777","#4f46e5","#059669","#ea580c","#7c3aed","#0284c7","#be123c","#16a34a","#475569"];
+
+type Point={measured_at:string;[key:string]:string|number|null};
+type Target={min?:number;target?:number;max?:number};
+type Period="7"|"30"|"90"|"all";
+
+function fieldInfo(code:string){const f=fields.find(([c])=>c===code);return f?{label:f[1],unit:f[2]}:{label:code.toUpperCase(),unit:""}}
+function fmt(value:number){if(!Number.isFinite(value))return "–";if(Math.abs(value)>=100)return value.toFixed(0);if(Math.abs(value)>=10)return value.toFixed(1).replace(/\.0$/,"");return value.toFixed(2).replace(/0+$/,"").replace(/\.$/,"")}
+
+function TrendTooltip({active,payload,label,selected,multi}:{active?:boolean;payload?:any[];label?:string;selected:string[];multi:boolean}){
+  if(!active||!payload?.length)return null;
+  const row=payload[0]?.payload||{};
+  return <div style={{background:"white",border:"1px solid #dbe5e7",borderRadius:12,padding:"10px 12px",boxShadow:"0 8px 24px rgba(15,23,42,.12)"}}>
+    <b>{label?new Date(label).toLocaleString("sk-SK"):""}</b>
+    <div style={{display:"grid",gap:5,marginTop:7}}>{selected.map((code,i)=>{const info=fieldInfo(code);const raw=Number(row[`${code}__raw`]??row[code]);if(!Number.isFinite(raw))return null;return <div key={code} style={{display:"flex",gap:8,alignItems:"center"}}><span style={{width:9,height:9,borderRadius:999,background:colors[i%colors.length]}}/><span><b>{info.label}</b> {fmt(raw)} {info.unit}</span>{multi&&<small style={{color:"#64748b"}}>trend {fmt(Number(row[code]))}%</small>}</div>})}</div>
+  </div>
+}
+
+function TrendSummary({points,selected,period}:{points:Point[];selected:string[];period:Period}){
+  if(!selected.length)return null;
+  const summaries=selected.map(code=>{
+    const vals=points.map(p=>Number(p[`${code}__raw`]??p[code])).filter(Number.isFinite);
+    if(vals.length<2)return null;
+    const first=vals[0],last=vals[vals.length-1],delta=last-first,info=fieldInfo(code);
+    const threshold=Math.max(Math.abs(first)*0.05,0.01);
+    const movement=Math.abs(delta)<=threshold?"je stabilné":delta>0?"stúplo":"kleslo";
+    const window=period==="all"?"v zobrazenom období":`za posledných ${period} dní`;
+    return movement==="je stabilné"?`${info.label} ${window} zostáva približne stabilné (${fmt(last)} ${info.unit}).`:`${info.label} ${window} ${movement} z ${fmt(first)} na ${fmt(last)} ${info.unit}.`;
+  }).filter(Boolean) as string[];
+  if(!summaries.length)return <div className="notice">Na vyhodnotenie trendu sú potrebné aspoň dve merania vybraného parametra.</div>;
+  return <div className="notice"><b>Vývoj parametrov</b><div style={{display:"grid",gap:5,marginTop:7}}>{summaries.map(x=><div key={x}>{x}</div>)}</div></div>
+}
+
+function MeasurementTrendChart({aquariums}:{aquariums:Aquarium[]}){
+  const[aquariumId,setAquariumId]=useState(aquariums[0]?.id||"");
+  const[selected,setSelected]=useState<string[]>(["no2"]);
+  const[period,setPeriod]=useState<Period>("30");
+  const[rows,setRows]=useState<Point[]>([]);
+  const[targets,setTargets]=useState<Record<string,Target>>({});
+  const[loading,setLoading]=useState(false);
+  const[msg,setMsg]=useState("");
+
+  useEffect(()=>{if(!aquariumId&&aquariums[0])setAquariumId(aquariums[0].id)},[aquariums,aquariumId]);
+  useEffect(()=>{if(aquariumId)void load()},[aquariumId]);
+
+  async function load(){
+    setLoading(true);setMsg("");const s=createClient();
+    const[m,t]=await Promise.all([
+      s.from("measurement_sessions").select("id,measured_at,context_reset_maintenance_id,measurement_values(parameter_code,value)").eq("aquarium_id",aquariumId).order("measured_at",{ascending:true}).limit(500),
+      s.from("aquarium_parameter_targets").select("parameter_code,min_value,target_value,max_value").eq("aquarium_id",aquariumId),
+    ]);
+    setLoading(false);
+    if(m.error){setMsg("Graf sa nepodarilo načítať.");return}
+    const mapped=(m.data||[]).filter((x:any)=>!x.context_reset_maintenance_id).map((x:any)=>{const p:Point={measured_at:x.measured_at};for(const v of x.measurement_values||[])p[v.parameter_code]=Number(v.value);return p});
+    setRows(mapped);
+    if(!t.error){const out:Record<string,Target>={};for(const x of t.data||[])out[x.parameter_code]={min:x.min_value==null?undefined:Number(x.min_value),target:x.target_value==null?undefined:Number(x.target_value),max:x.max_value==null?undefined:Number(x.max_value)};setTargets(out)}
+  }
+
+  const filtered=useMemo(()=>{if(period==="all")return rows;const from=Date.now()-Number(period)*86400000;return rows.filter(p=>new Date(p.measured_at).getTime()>=from)},[rows,period]);
+  const multi=selected.length>1;
+  const chartData=useMemo(()=>{
+    const ranges:Record<string,{min:number;max:number}>={};
+    if(multi)for(const code of selected){const vals=filtered.map(p=>Number(p[code])).filter(Number.isFinite);if(vals.length){const min=Math.min(...vals),max=Math.max(...vals);ranges[code]={min,max}}}
+    return filtered.map(p=>{const out:Point={...p};for(const code of selected){const raw=Number(p[code]);out[`${code}__raw`]=Number.isFinite(raw)?raw:null;if(multi&&Number.isFinite(raw)){const r=ranges[code];out[code]=r?(r.max===r.min?50:((raw-r.min)/(r.max-r.min))*100):null}}return out});
+  },[filtered,selected,multi]);
+  const visibleSelected=selected.filter(code=>chartData.some(p=>Number.isFinite(Number(p[`${code}__raw`]??p[code]))));
+  const one=selected.length===1?selected[0]:null;const target=one?targets[one]:undefined;const oneInfo=one?fieldInfo(one):null;
+
+  function toggle(code:string){setSelected(prev=>prev.includes(code)?(prev.length===1?prev:prev.filter(x=>x!==code)):[...prev,code])}
+
+  return <>
+    <section className="card">
+      <div className="section-head"><div><h3>Graf vývoja</h3><p className="muted" style={{margin:0}}>Vyber jeden parameter pre presnú mierku alebo viac parametrov pre porovnanie trendov.</p></div></div>
+      <div className="form" style={{marginBottom:14}}>
+        <label>Akvárium<select value={aquariumId} onChange={e=>setAquariumId(e.target.value)}>{aquariums.map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
+        <label>Obdobie<select value={period} onChange={e=>setPeriod(e.target.value as Period)}><option value="7">7 dní</option><option value="30">30 dní</option><option value="90">90 dní</option><option value="all">Všetko</option></select></label>
+      </div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}}>{fields.map(([code,label])=><button type="button" key={code} onClick={()=>toggle(code)} className={selected.includes(code)?"primary":""} style={{padding:"7px 10px"}}>{label}</button>)}</div>
+      {multi&&<div className="notice" style={{marginBottom:14}}>Pri viacerých parametroch sa línie zobrazujú ako <b>normalizovaný trend 0–100 %</b>, aby boli pH, NO₃, GH a ďalšie rozdielne mierky porovnateľné. Presnú nameranú hodnotu vždy vidíš v tooltipe.</div>}
+      {msg&&<div className="notice">{msg}</div>}
+      {loading?<div className="notice">Načítavam graf…</div>:chartData.length===0?<div className="notice">Pre zvolené obdobie nie sú dostupné žiadne merania.</div>:visibleSelected.length===0?<div className="notice">Vybrané parametre nemajú v tomto období žiadne namerané hodnoty.</div>:<div style={{width:"100%",height:390,minHeight:320}}>
+        <ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{top:12,right:18,left:6,bottom:8}}>
+          <CartesianGrid strokeDasharray="3 5" vertical={false}/>
+          <XAxis dataKey="measured_at" tickFormatter={v=>new Date(v).toLocaleDateString("sk-SK",{day:"2-digit",month:"2-digit"})} minTickGap={24}/>
+          <YAxis domain={multi?[0,100]:["auto","auto"]} tickFormatter={v=>multi?`${Math.round(v)}%`:fmt(Number(v))} width={multi?48:58} label={oneInfo?.unit?{value:oneInfo.unit,angle:-90,position:"insideLeft"}:undefined}/>
+          <Tooltip content={<TrendTooltip selected={selected} multi={multi}/>}/>
+          <Legend formatter={(value)=>fieldInfo(String(value)).label}/>
+          {!multi&&target?.min!==undefined&&target?.max!==undefined&&<ReferenceArea y1={target.min} y2={target.max} fill="#22c55e" fillOpacity={0.08}/>} 
+          {!multi&&target?.target!==undefined&&<ReferenceLine y={target.target} stroke="#0f766e" strokeDasharray="6 5" label={{value:"cieľ",position:"insideTopRight"}}/>}
+          {!multi&&target?.min!==undefined&&target?.max===undefined&&<ReferenceLine y={target.min} stroke="#64748b" strokeDasharray="5 5"/>}
+          {!multi&&target?.max!==undefined&&target?.min===undefined&&<ReferenceLine y={target.max} stroke="#64748b" strokeDasharray="5 5"/>}
+          {selected.map((code,i)=><Line key={code} type="monotone" dataKey={code} connectNulls={false} stroke={colors[i%colors.length]} strokeWidth={3} dot={{r:3}} activeDot={{r:6}} name={code}/>) }
+        </LineChart></ResponsiveContainer>
+      </div>}
+    </section>
+    <TrendSummary points={chartData} selected={visibleSelected} period={period}/>
+  </>
+}
+
+export default function MeasurementsPage({aquariums}:{aquariums:Aquarium[]}){
+  const[tab,setTab]=useState<"records"|"trend">("records");
+  if(!aquariums.length)return <section className="card"><h3>Merania</h3><p>Najprv vytvor akvárium.</p></section>;
+  return <>
+    <section className="card" style={{padding:"10px 12px"}}><div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button type="button" className={tab==="records"?"primary":""} onClick={()=>setTab("records")}>Záznamy</button><button type="button" className={tab==="trend"?"primary":""} onClick={()=>setTab("trend")}>Graf vývoja</button></div></section>
+    {tab==="records"?<><PhControllerMeasurementStatus aquariums={aquariums}/><MeasurementBiologyStatus aquariums={aquariums}/><MeasurementsModule aquariums={aquariums}/></>:<MeasurementTrendChart aquariums={aquariums}/>} 
+  </>
+}
