@@ -1,0 +1,76 @@
+/* V1 dashboard contrast tuning: visual only, no data or status logic changes. */
+.v1d .v1d-alert.bad{
+  background:#fff1ef;
+  border-color:#e6a39d;
+  box-shadow:inset 4px 0 0 #c94f45;
+}
+.v1d .v1d-alert.bad .v1d-alert-icon{
+  background:#f9d7d3;
+  color:#a9342d;
+}
+.v1d .v1d-alert.bad b{color:#922f29}
+.v1d .v1d-alert.bad small{color:#7d4a46}
+
+.v1d .v1d-alert.warning{
+  background:#fff7e8;
+  border-color:#e8c27f;
+  box-shadow:inset 4px 0 0 #d28a20;
+}
+.v1d .v1d-alert.warning .v1d-alert-icon{
+  background:#fbe8bd;
+  color:#95600f;
+}
+.v1d .v1d-alert.warning b{color:#81540f}
+.v1d .v1d-alert.warning small{color:#775f38}
+
+.v1d .v1d-measures>div.good{
+  background:#eef9f4;
+  border-color:#a9d8c4;
+  box-shadow:inset 4px 0 0 #2f9a71;
+}
+.v1d .v1d-measures>div.good svg,
+.v1d .v1d-measures>div.good b{color:#1f7252}
+
+.v1d .v1d-measures>div.warning{
+  background:#fff6e5;
+  border-color:#e4bd72;
+  box-shadow:inset 4px 0 0 #d28a20;
+}
+.v1d .v1d-measures>div.warning svg,
+.v1d .v1d-measures>div.warning b{color:#81540f}
+
+.v1d .v1d-measures>div.bad{
+  background:#fff0ee;
+  border-color:#e49c96;
+  box-shadow:inset 4px 0 0 #c94f45;
+}
+.v1d .v1d-measures>div.bad svg,
+.v1d .v1d-measures>div.bad b{color:#922f29}
+
+.v1d .v1d-measures>div.neutral{
+  background:#f5f8f8;
+  border-color:#d7e1de;
+}
+
+.v1d .v1d-measures>div b{font-weight:850}
+.v1d .v1d-measures>div small{opacity:1}
+
+.v1d .v1d-health.red{
+  background:linear-gradient(135deg,#fff0eb,#fff9f7);
+  border-color:#e8a991;
+  box-shadow:inset 5px 0 0 #c94f45,0 3px 14px rgba(119,46,38,.06);
+}
+.v1d .v1d-health.orange{
+  background:linear-gradient(135deg,#fff6df,#fffaf2);
+  border-color:#e6c37e;
+  box-shadow:inset 5px 0 0 #d28a20,0 3px 14px rgba(130,87,21,.05);
+}
+.v1d .v1d-health.green{
+  background:linear-gradient(135deg,#eaf8f1,#f8fdfb);
+  border-color:#a8d8c3;
+  box-shadow:inset 5px 0 0 #2f9a71,0 3px 14px rgba(36,111,80,.05);
+}
+
+.v1d .v1d-health-pill.red{background:#fde1de;border-color:#e7a39d;color:#8f2e28}
+.v1d .v1d-health-pill.orange{background:#fbe9bf;border-color:#e1bd72;color:#7b500e}
+.v1d .v1d-health-pill.green{background:#def3e9;border-color:#a3d5bf;color:#216e50}
