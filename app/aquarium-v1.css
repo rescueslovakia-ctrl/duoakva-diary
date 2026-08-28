@@ -1,0 +1,26 @@
+/* V1 Aquarium workspace – presentation only. Existing production modules keep their handlers and data logic. */
+.v1-aquarium-workspace{color:#17332f}
+.v1-aquarium-tabs{display:flex;gap:7px;padding:5px;background:#eaf2f0;border:1px solid #dbe7e4;border-radius:14px;width:max-content;max-width:100%;margin:0 0 18px;overflow:auto}
+.v1-aquarium-tabs button{border:0!important;background:transparent!important;color:#607873!important;border-radius:10px!important;padding:10px 15px!important;font-size:13px!important;font-weight:800!important;white-space:nowrap;box-shadow:none!important}
+.v1-aquarium-tabs button.active{background:#fff!important;color:#126f5e!important;box-shadow:0 1px 5px rgba(18,72,63,.09)!important}
+.v1-aquarium-content>.toolbar{background:#fff;border:1px solid #dfe9e6;border-radius:16px;padding:15px 17px;margin-bottom:14px}
+.v1-aquarium-content>.toolbar .muted{margin:0;font-size:13px;line-height:1.5;color:#657b76}
+.v1-aquarium-content>.notice{border-radius:13px;margin-bottom:14px}
+.v1-aquarium-content>.grid3{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.v1-aquarium-content>.grid3>.card{position:relative;border:1px solid #dfe9e6;border-radius:17px;padding:19px;background:#fff;box-shadow:0 2px 11px rgba(16,54,48,.035);overflow:hidden}
+.v1-aquarium-content>.grid3>.card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#15977d}
+.v1-aquarium-content>.grid3>.card h3{font-size:18px;margin:0 0 10px;color:#17332f}
+.v1-aquarium-content>.grid3>.card p{font-size:13px;line-height:1.5;margin:6px 0;color:#526c67}
+.v1-aquarium-content>.grid3>.card p b{font-size:17px;color:#17332f}
+.v1-aquarium-content>.grid3>.card .form-actions{border-top:1px solid #edf2f0;margin-top:14px;padding-top:13px}
+.v1-aquarium-content>.card{border-color:#dfe9e6;border-radius:17px;box-shadow:0 2px 11px rgba(16,54,48,.035)}
+.v1-aquarium-content>.card>h3{font-size:18px;color:#17332f}
+.v1-aquarium-content .form label{font-size:12px;font-weight:750;color:#536d67}
+.v1-aquarium-content .form input,.v1-aquarium-content .form select,.v1-aquarium-content .form textarea{border-color:#d7e4e0;border-radius:10px;background:#fbfdfc}
+.v1-aquarium-content .form input:focus,.v1-aquarium-content .form select:focus,.v1-aquarium-content .form textarea:focus{border-color:#45a993;outline:2px solid rgba(69,169,147,.12)}
+/* Existing entity modules commonly render their records as cards/grids. Keep behavior, improve hierarchy. */
+.v1-aquarium-content .entityGrid,.v1-aquarium-content .catalog-grid,.v1-aquarium-content .items-grid{gap:13px}
+.v1-aquarium-content .entity,.v1-aquarium-content .catalog-card,.v1-aquarium-content .item-card{border-color:#dfe9e6!important;border-radius:15px!important;box-shadow:0 2px 9px rgba(16,54,48,.03)!important;background:#fff!important}
+.v1-aquarium-content button.primary{background:#13836d;border-color:#13836d}
+@media(max-width:800px){.v1-aquarium-content>.grid3{grid-template-columns:1fr}.v1-aquarium-tabs{width:100%}.v1-aquarium-tabs button{flex:1}}
+@media(max-width:520px){.v1-aquarium-tabs button{padding:9px 11px!important;font-size:12px!important}.v1-aquarium-content>.toolbar{align-items:stretch}.v1-aquarium-content>.toolbar button{width:100%;justify-content:center}}
