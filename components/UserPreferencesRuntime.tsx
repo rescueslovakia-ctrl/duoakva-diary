@@ -1,21 +1,8 @@
 "use client";
 import {useEffect} from "react";
-
-type Prefs={confirmDeletes?:boolean;compactCards?:boolean};
+type Prefs={confirmDeletes?:boolean;compactCards?:boolean;defaultWaterSource?:"tap"|"ro"|"mixed"};
 const KEY="duoakva-user-settings-v1";
 function read():Prefs{try{return JSON.parse(localStorage.getItem(KEY)||"{}") as Prefs}catch{return {}}}
-
-export default function UserPreferencesRuntime(){
- useEffect(()=>{
-  const nativeConfirm=window.confirm.bind(window);
-  let prefs:Prefs=read();
-  const apply=()=>{prefs=read();document.documentElement.classList.toggle("duoakva-compact",prefs.compactCards===true)};
-  const wrapped=(message?:string)=>prefs.confirmDeletes===false?true:nativeConfirm(message);
-  window.confirm=wrapped;
-  apply();
-  const timer=window.setInterval(apply,500);
-  const storage=()=>apply();window.addEventListener("storage",storage);
-  return()=>{window.clearInterval(timer);window.removeEventListener("storage",storage);window.confirm=nativeConfirm;document.documentElement.classList.remove("duoakva-compact")};
- },[]);
- return null;
-}
+function setNativeSelect(el:HTMLSelectElement,value:string){if(el.value===value)return;const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value")?.set;setter?.call(el,value);el.dispatchEvent(new Event("change",{bubbles:true}))}
+function aquariumWaterLabel(v?:Prefs["defaultWaterSource"]){return v==='ro'?'RO (reverzná osmóza)':v==='mixed'?'RO + vodovodná voda':'Vodovodná voda'}
+export default function UserPreferencesRuntime(){useEffect(()=>{const nativeConfirm=window.confirm.bind(window);let prefs:Prefs=read();const seenForms=new WeakSet<Element>();const apply=()=>{prefs=read();document.documentElement.classList.toggle("duoakva-compact",prefs.compactCards===true);for(const h of Array.from(document.querySelectorAll(".v1-basic h3"))){if((h.textContent||'').trim()!=='Nové akvárium')continue;const form=h.parentElement?.querySelector('form');if(!form||seenForms.has(form))continue;for(const label of Array.from(form.querySelectorAll('label'))){if(!(label.textContent||'').trim().startsWith('Zdroj vody'))continue;const select=label.querySelector('select') as HTMLSelectElement|null;if(select)setNativeSelect(select,aquariumWaterLabel(prefs.defaultWaterSource));break}seenForms.add(form)}};const wrapped=(message?:string)=>prefs.confirmDeletes===false?true:nativeConfirm(message);window.confirm=wrapped;apply();const timer=window.setInterval(apply,500);const storage=()=>apply();window.addEventListener("storage",storage);return()=>{window.clearInterval(timer);window.removeEventListener("storage",storage);window.confirm=nativeConfirm;document.documentElement.classList.remove("duoakva-compact")}},[]);return null}
