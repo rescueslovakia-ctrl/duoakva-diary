@@ -18,9 +18,27 @@
 .v1-aquarium-content .form label{font-size:12px;font-weight:750;color:#536d67}
 .v1-aquarium-content .form input,.v1-aquarium-content .form select,.v1-aquarium-content .form textarea{border-color:#d7e4e0;border-radius:10px;background:#fbfdfc}
 .v1-aquarium-content .form input:focus,.v1-aquarium-content .form select:focus,.v1-aquarium-content .form textarea:focus{border-color:#45a993;outline:2px solid rgba(69,169,147,.12)}
-/* Existing entity modules commonly render their records as cards/grids. Keep behavior, improve hierarchy. */
 .v1-aquarium-content .entityGrid,.v1-aquarium-content .catalog-grid,.v1-aquarium-content .items-grid{gap:13px}
 .v1-aquarium-content .entity,.v1-aquarium-content .catalog-card,.v1-aquarium-content .item-card{border-color:#dfe9e6!important;border-radius:15px!important;box-shadow:0 2px 9px rgba(16,54,48,.03)!important;background:#fff!important}
 .v1-aquarium-content button.primary{background:#13836d;border-color:#13836d}
-@media(max-width:800px){.v1-aquarium-content>.grid3{grid-template-columns:1fr}.v1-aquarium-tabs{width:100%}.v1-aquarium-tabs button{flex:1}}
-@media(max-width:520px){.v1-aquarium-tabs button{padding:9px 11px!important;font-size:12px!important}.v1-aquarium-content>.toolbar{align-items:stretch}.v1-aquarium-content>.toolbar button{width:100%;justify-content:center}}
+
+/* Plants – V1 visual cards with optional user photo and collapsed details. */
+.plant-v1-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:16px}
+.plant-v1-card{display:grid;grid-template-columns:150px minmax(0,1fr);background:#fff;border:1px solid #dfe9e6;border-radius:18px;overflow:hidden;box-shadow:0 3px 14px rgba(16,54,48,.04);min-width:0}
+.plant-v1-photo{position:relative;min-height:190px;background:linear-gradient(145deg,#eaf4f0,#f7fbf9);overflow:hidden}
+.plant-v1-photo img{width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0}
+.plant-v1-photo-empty{height:100%;min-height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#6f8c84;font-size:11px;font-weight:750}
+.plant-v1-photo-empty svg{width:34px;height:34px;color:#2f9a71}
+.plant-v1-photo-action{position:absolute;left:10px;right:10px;bottom:10px;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(8,54,47,.88);color:#fff;border-radius:9px;padding:8px 9px;font-size:10px;font-weight:800;cursor:pointer;backdrop-filter:blur(5px)}
+.plant-v1-photo-action svg{width:14px}.plant-v1-photo-action input{display:none}
+.plant-v1-main{padding:16px;min-width:0;display:flex;flex-direction:column}
+.plant-v1-title{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.plant-v1-title small{font-size:9px;font-weight:850;letter-spacing:.12em;color:#80958f}.plant-v1-title h3{font-size:17px!important;margin:3px 0 2px!important;line-height:1.2}.plant-v1-title h3 i{font-style:italic}.plant-v1-title p{margin:0!important;font-size:11px!important;color:#728680!important}.plant-v1-qty{flex:0 0 auto;border-radius:999px;background:#edf7f4;color:#196f5e;padding:5px 8px;font-size:10px;font-weight:850}
+.plant-v1-tags{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0}.plant-v1-tags span{background:#f1f6f4;border:1px solid #e0e9e6;border-radius:999px;padding:5px 7px;font-size:10px;font-weight:700;color:#506b64}
+.plant-v1-expand{width:100%;display:flex!important;align-items:center;justify-content:space-between!important;gap:8px!important;border:0!important;border-top:1px solid #edf2f0!important;border-bottom:1px solid #edf2f0!important;border-radius:0!important;background:transparent!important;padding:10px 0!important;color:#176e5d!important;font-size:11px!important;font-weight:850!important;box-shadow:none!important}.plant-v1-expand svg{width:15px}
+.plant-v1-detail{padding:13px 0 4px}.plant-v1-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.plant-v1-info{background:#f7faf9;border:1px solid #e5ece9;border-radius:10px;padding:8px}.plant-v1-info small,.plant-v1-info b{display:block}.plant-v1-info small{font-size:9px;color:#778b86;margin-bottom:2px}.plant-v1-info b{font-size:11px;color:#263f39}.plant-v1-notes{margin-top:9px;border-top:1px solid #edf2f0;padding-top:9px}.plant-v1-notes b{font-size:10px}.plant-v1-notes p{font-size:11px!important;line-height:1.45!important;margin:3px 0 0!important;color:#617872!important}.plant-v1-manual{font-size:11px!important;color:#677d77!important;line-height:1.45!important}
+.plant-v1-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:12px}.plant-v1-actions button{padding:7px 9px!important;font-size:10px!important;display:inline-flex!important;align-items:center!important;gap:5px!important}.plant-v1-actions button svg{width:13px;height:13px}
+
+@media(max-width:1000px){.plant-v1-grid{grid-template-columns:1fr}.plant-v1-card{grid-template-columns:170px minmax(0,1fr)}}
+@media(max-width:800px){.v1-aquarium-content>.grid3{grid-template-columns:1fr}.v1-aquarium-tabs{width:100%}.v1-aquarium-tabs button{flex:1}.plant-v1-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.plant-v1-card{grid-template-columns:1fr}.plant-v1-photo{min-height:210px}.plant-v1-photo-empty{min-height:210px}.plant-v1-photo img{position:absolute}.plant-v1-detail-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.v1-aquarium-tabs button{padding:9px 11px!important;font-size:12px!important}.v1-aquarium-content>.toolbar{align-items:stretch}.v1-aquarium-content>.toolbar button{width:100%;justify-content:center}.plant-v1-detail-grid{grid-template-columns:1fr}}
