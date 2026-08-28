@@ -1,12 +1,10 @@
 "use client";
 import {useState} from "react";
-import {NotebookPen,Droplets} from "lucide-react";
+import {NotebookPen,Droplets,CalendarDays,Waves} from "lucide-react";
 import type {Aquarium} from "@/components/AquariumsModule";
 import MaintenanceModule from "@/components/MaintenanceModule";
 import FertilizerDoseMaintenance from "@/components/FertilizerDoseMaintenance";
 import MeasurementFreshnessNotice from "@/components/MeasurementFreshnessNotice";
-
-export default function MaintenanceSection({aquariums}:{aquariums:Aquarium[]}){
- const[tab,setTab]=useState<'maintenance'|'dosing'>('maintenance');
- return <><section className="card"><div className="section-head"><div><small>ÚDRŽBA AKVÁRIA</small><h3>Vyber evidenciu</h3></div></div><div className="form-actions" style={{gap:10,flexWrap:'wrap'}}><button type="button" className={tab==='maintenance'?'primary':''} onClick={()=>setTab('maintenance')}><NotebookPen size={16}/> História údržby</button><button type="button" className={tab==='dosing'?'primary':''} onClick={()=>setTab('dosing')}><Droplets size={16}/> Evidencia dávok hnojív</button></div><p className="muted" style={{marginBottom:0,marginTop:10}}>Dávkovanie je samostatná evidencia, ale zapísaná dávka sa zároveň zobrazí aj v spoločnej histórii údržby.</p></section>{tab==='maintenance'?<><MeasurementFreshnessNotice aquariums={aquariums}/><MaintenanceModule aquariums={aquariums}/></>:<FertilizerDoseMaintenance aquariums={aquariums}/>}</>;
-}
+import FertilizingSection from "@/components/FertilizingSection";
+type Tab='maintenance'|'dosing'|'fertilizing';
+export default function MaintenanceSection({aquariums}:{aquariums:Aquarium[]}){const[tab,setTab]=useState<Tab>('maintenance');return <div className="maintenance-v1"><div className="maintenance-v1-intro"><div><small>STAROSTLIVOSŤ O AKVÁRIUM</small><h3>Údržba a hnojenie</h3><p>Bežné zásahy, evidencia dávok aj odporúčané hnojenie sú na jednom mieste. Zoznam používaných hnojív zostáva v Akvárium → Hnojivá.</p></div></div><div className="maintenance-v1-tabs"><button type="button" className={tab==='maintenance'?'active':''} onClick={()=>setTab('maintenance')}><NotebookPen size={16}/> Údržba</button><button type="button" className={tab==='dosing'?'active':''} onClick={()=>setTab('dosing')}><Droplets size={16}/> Evidencia dávok</button><button type="button" className={tab==='fertilizing'?'active':''} onClick={()=>setTab('fertilizing')}><CalendarDays size={16}/> Hnojenie a úprava vody</button></div><div className={`maintenance-v1-content maintenance-${tab}`}>{tab==='maintenance'?<><MeasurementFreshnessNotice aquariums={aquariums}/><MaintenanceModule aquariums={aquariums}/></>:tab==='dosing'?<FertilizerDoseMaintenance aquariums={aquariums}/>:<FertilizingSection aquariums={aquariums}/>}</div></div>}
