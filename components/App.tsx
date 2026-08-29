@@ -10,7 +10,7 @@ import PlantsModule from "@/components/PlantsModule";
 import LivestockModule from "@/components/LivestockModule";
 import FertilizersModule from "@/components/FertilizersModule";
 import FertilizerUserDataPanel from "@/components/FertilizerUserDataPanel";
-import FertertilizerPhotoEnhancer from "@/components/FertilizerPhotoEnhancer";
+import FertilizerPhotoEnhancer from "@/components/FertilizerPhotoEnhancer";
 import MaintenanceSection from "@/components/MaintenanceSection";
 import TasksModule from "@/components/TasksModule";
 import SettingsModule from "@/components/SettingsModule";
