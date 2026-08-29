@@ -1,5 +1,5 @@
 export type MeasurementStatus='good'|'warning'|'bad'|'neutral';
-export type TargetRange={min?:number;max?:number};
+export type TargetRange={min?:number;max?:number;source?:'user_custom'|'ph_controller'|'livestock'};
 type Range={goodMin?:number;goodMax?:number;warnMin?:number;warnMax?:number;exactZero?:boolean};
 
 const fallback:Record<string,Range>={
@@ -29,7 +29,6 @@ function statusFromRange(value:number,r:Range):MeasurementStatus{
 
 export function measurementStatus(code:string,value:number,target?:TargetRange|null):MeasurementStatus{
  if(!Number.isFinite(value))return 'neutral';
- // Toxic nitrogen parameters must stay governed by safety limits, never by livestock preference ranges.
  if(['no2','nh3','nh4'].includes(code))return statusFromRange(value,fallback[code]);
  if(target&&(target.min!=null||target.max!=null)){
   const min=target.min,max=target.max;
@@ -43,8 +42,9 @@ export function measurementStatus(code:string,value:number,target?:TargetRange|n
 }
 
 export function measurementStatusLabel(status:MeasurementStatus,target?:TargetRange|null){
- if(status==='good')return target?'V rozsahu vhodnom pre osádku':'V odporúčanom rozsahu';
- if(status==='warning')return target?'Tesne mimo rozsahu osádky':'Hraničná hodnota';
- if(status==='bad')return target?'Mimo rozsahu vhodného pre osádku':'Mimo odporúčaného rozsahu';
+ const source=target?.source;
+ if(status==='good')return source==='user_custom'?'V používateľom nastavenom rozsahu':source==='ph_controller'?'V rozsahu nastavenia pH controlleru':target?'V rozsahu vhodnom pre osádku':'V odporúčanom rozsahu';
+ if(status==='warning')return source==='user_custom'?'Tesne mimo používateľom nastaveného rozsahu':source==='ph_controller'?'Tesne mimo nastavenia pH controlleru':target?'Tesne mimo rozsahu osádky':'Hraničná hodnota';
+ if(status==='bad')return source==='user_custom'?'Mimo používateľom nastaveného rozsahu':source==='ph_controller'?'Mimo rozsahu nastavenia pH controlleru':target?'Mimo rozsahu vhodného pre osádku':'Mimo odporúčaného rozsahu';
  return 'Bez univerzálneho rozsahu';
 }
