@@ -26,6 +26,7 @@ import AdminFertilizerUserSubmissions from "@/components/AdminFertilizerUserSubm
 import AdminCatalogDetailProposals from "@/components/AdminCatalogDetailProposals";
 import AdminErrorLogs from "@/components/AdminErrorLogs";
 import AdminUserStats from "@/components/AdminUserStats";
+import AdminFeedback from "@/components/AdminFeedback";
 
 const baseNav=[["Prehľad",Home],["Akvárium",Waves],["Fotodenník",Images],["Merania",FlaskConical],["Údržba",NotebookPen],["Úlohy",Bell],["Nastavenia",Settings]] as const;
 type AquariumTab='Základné údaje'|'Rastliny'|'Osádka'|'Technika'|'Hnojivá';
@@ -113,7 +114,7 @@ export default function App(){
  else if(page==="Údržba")body=<MaintenanceSection aquariums={aquariums}/>;
  else if(page==="Úlohy")body=<TasksModule aquariums={aquariums}/>;
  else if(page==="Nastavenia")body=<SettingsModule email={email} displayName={displayName} onDisplayNameChange={setDisplayName} aquariums={aquariums}/>;
- else if(page==="Admin"&&isAdmin)body=<><AdminUserStats/><AdminErrorLogs/><AdminFertilizerUserSubmissions/><AdminCatalogDetailProposals/><AdminCatalogModule/></>;
+ else if(page==="Admin"&&isAdmin)body=<><AdminUserStats/><AdminFeedback/><AdminErrorLogs/><AdminFertilizerUserSubmissions/><AdminCatalogDetailProposals/><AdminCatalogModule/></>;
  else body=null;
 
  return <div className="app"><aside><div className="logo">DuoAkva <b>Diary</b></div>{nav.map(([n,I])=><button className={page===n?"on":""} key={n} onClick={()=>setPage(n)}><I size={18}/>{n}</button>)}{email&&<button onClick={logout}><LogOut size={18}/>Odhlásiť</button>}</aside><main><header><div><small>DUOAKVA DIARY</small><h1>{page}</h1></div>{displayName&&<span className="account">{displayName}</span>}</header>{msg&&<div className="notice">{msg}</div>}{body}<footer className="app-legal-footer"><div>© {new Date().getFullYear()} Duo R&amp;M s. r. o. · DuoAkva Diary · Všetky práva vyhradené.</div><div>Duo R&amp;M s. r. o. · IČO 53658132 · <a href="mailto:info@duoakva.sk">info@duoakva.sk</a></div><div><a href="/prevadzkovatel">Prevádzkovateľ</a><a href="/ochrana-osobnych-udajov">Ochrana osobných údajov</a><a href="/cookies">Cookies</a><a href="/podmienky-pouzivania">Podmienky používania</a></div></footer></main><FeedbackBubble userId={userId} email={email} page={page}/></div>
