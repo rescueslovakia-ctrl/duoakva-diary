@@ -1,8 +1,10 @@
 import {createServerSupabaseClient} from "@/lib/supabase/server";
+import {createClient} from "@supabase/supabase-js";
 export const runtime="nodejs";export const dynamic="force-dynamic";
 const CONFIRMATION="Potvrdzujem, že zadané údaje o dávkovaní som prepísal(a) z etikety alebo návodu konkrétneho produktu a beriem na vedomie, že odporúčanie DuoAkva Diary bude vypočítané z mnou zadaných údajov.";
 async function caller(){const s=await createServerSupabaseClient();const{data}=await s.auth.getUser();return data.user||null}
 async function isAdmin(id:string){const s=await createServerSupabaseClient();const{data}=await s.from("profiles").select("role").eq("id",id).maybeSingle();return data?.role==="admin"}
+function adminDb(){const url=process.env.NEXT_PUBLIC_SUPABASE_URL;const key=process.env.SUPABASE_SERVICE_ROLE_KEY;if(!url||!key)throw new Error("missing_supabase_server_config");return createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}})}
 const finite=(v:any)=>v===""||v==null?null:Number.isFinite(Number(v))?Number(v):null;
 function cleanEffects(v:any){const out:any={};for(const k of ["no3","po4","k","fe","mg","ca"]){const n=finite(v?.[k]);if(n!=null&&n>=0)out[k]=n}return out}
 function cleanSchedule(v:any){if(!v||v.enabled!==true)return null;const mode=["routine","correction","hybrid"].includes(v.mode)?v.mode:"correction";const kind=["daily","per_week","as_needed"].includes(v.frequencyKind)?v.frequencyKind:"as_needed";const min=finite(v.timesPerWeekMin),max=finite(v.timesPerWeekMax);if(kind==="per_week"&&(!min||!max||min<=0||max<min))return null;return{verified:true,user_confirmed:true,mode:mode==="routine"?"regular":mode==="hybrid"?"both":"correction",frequency_kind:kind,times_per_week_min:kind==="per_week"?min:null,times_per_week_max:kind==="per_week"?max:null,as_needed:kind==="as_needed"||!!v.asNeeded,source_text:String(v.sourceText||"").slice(0,3000)||null,source_url:null,verified_at:new Date().toISOString(),verified_by:"user",variants:{}}}
@@ -11,7 +13,8 @@ export async function GET(){const u=await caller();if(!u||!await isAdmin(u.id))r
 export async function PATCH(req:Request){
  const u=await caller();if(!u||!await isAdmin(u.id))return Response.json({ok:false,error:"forbidden"},{status:403});
  const b=await req.json().catch(()=>null) as any;const id=String(b?.id||""),status=String(b?.status||"");if(!id||!["approved","rejected","needs_review"].includes(status))return Response.json({ok:false,error:"invalid_review"},{status:400});
- const s=await createServerSupabaseClient();const{data:r,error}=await s.from("fertilizer_user_dosing_audit").select("*").eq("id",id).maybeSingle();if(error||!r)return Response.json({ok:false,error:error?.message||"not_found"},{status:404});
+ let s;try{s=adminDb()}catch(e){return Response.json({ok:false,error:e instanceof Error?e.message:"admin_db_unavailable"},{status:500})}
+ const{data:r,error}=await s.from("fertilizer_user_dosing_audit").select("*").eq("id",id).maybeSingle();if(error||!r)return Response.json({ok:false,error:error?.message||"not_found"},{status:404});
  let catalogId=r.fertilizer_catalog_id as string|null;
  if(status==="approved"){
   const effects={...(r.nutrient_effects||{})};
@@ -31,7 +34,7 @@ export async function PATCH(req:Request){
    const{error:linkError}=await s.from("fertilizer_user_dosing_audit").update({fertilizer_catalog_id:catalogId}).eq("id",id);if(linkError)return Response.json({ok:false,error:linkError.message},{status:500});
   }
   const{error:ce}=await s.from("fertilizer_catalog").update({reference_dose_ml:r.reference_dose_ml,reference_liters:r.reference_liters,nutrient_effects:effects,dosing_instructions:r.dosing_instructions||null,verification_status:"verified",enrichment_status:"verified",enrichment_checked_at:new Date().toISOString()}).eq("id",catalogId);if(ce)return Response.json({ok:false,error:ce.message},{status:500});
-  if(r.aquarium_fertilizer_id)await s.from("aquarium_fertilizers").update({fertilizer_id:catalogId,custom_name:null,custom_nutrient_effects:null,custom_reference_dose_ml:null,custom_reference_liters:null,custom_dosing_instructions:null,custom_dosing_confirmed:false,custom_dosing_confirmed_at:null}).eq("id",r.aquarium_fertilizer_id)
+  if(r.aquarium_fertilizer_id){const{error:assignmentError}=await s.from("aquarium_fertilizers").update({fertilizer_id:catalogId,custom_name:null,custom_nutrient_effects:null,custom_reference_dose_ml:null,custom_reference_liters:null,custom_dosing_instructions:null,custom_dosing_confirmed:false,custom_dosing_confirmed_at:null}).eq("id",r.aquarium_fertilizer_id);if(assignmentError)return Response.json({ok:false,error:assignmentError.message},{status:500})}
  }
  const{error:re}=await s.from("fertilizer_user_dosing_audit").update({status,reviewed_at:new Date().toISOString(),reviewed_by:u.id,review_note:String(b.reviewNote||"").slice(0,2000)||null,applied_to_catalog:status==="approved"}).eq("id",id);if(re)return Response.json({ok:false,error:re.message},{status:500});return Response.json({ok:true,catalogId})
 }
