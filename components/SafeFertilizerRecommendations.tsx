@@ -11,7 +11,8 @@ type EquipmentRow={category:string;specs:any;settings:any};
 type Code='no3'|'po4'|'k'|'fe'|'mg';
 const nutrients:[Code,string][]=[['no3','NO₃'],['po4','PO₄'],['k','K'],['fe','Fe'],['mg','Mg']];
 const defaults:Record<Code,{min:number;target:number;max:number}>={no3:{min:10,target:15,max:25},po4:{min:.5,target:1,max:2},k:{min:8,target:12,max:20},fe:{min:.05,target:.1,max:.2},mg:{min:5,target:8,max:15}};
-const safeStepMax:Record<Code,number>={no3:2,po4:.2,k:2,fe:.03,mg:1};
+const correctionStepMax:Record<Code,number>={no3:12,po4:.8,k:6,fe:.08,mg:2};
+const profileRecoveryShare:Record<string,number>={conservative:0,balanced:.25,intensive:.5};
 const profileMultiplier:Record<string,number>={conservative:.7,balanced:1,intensive:1.15};
 const clamp=(v:number,min:number,max:number)=>Math.max(min,Math.min(max,v));
 const countEffects=(e:any)=>nutrients.filter(([c])=>Number(e?.[c]||0)>0).length;
@@ -51,14 +52,23 @@ export default function SafeFertilizerRecommendations({aquariums}:{aquariums:Aqu
  const result=useMemo(()=>{
   if(!aq)return{lines:[] as string[],plan:[] as any[],warnings:[] as string[]};
   const projected:{[k:string]:number}={...latest};const desired:Record<string,number>={};const lines:string[]=[];const warnings:string[]=[];
-  for(const[code,label]of nutrients){const t=targets[code]||defaults[code],cur=latest[code];if(cur===undefined){lines.push(`Chýba aktuálne meranie ${label}.`);continue}if(cur>t.max){lines.push(`⚠️ ${label} ${cur} mg/l je nad cieľom.`);continue}if(cur>=t.min){lines.push(`✅ ${label} ${cur} mg/l je v cieľovom rozsahu.`);continue}desired[code]=Math.min((t.target-cur)*.5,safeStepMax[code])*factor}
+  const profile=(aq as any).dosing_profile||'conservative';
+  const recoveryShare=profileRecoveryShare[profile]??0;
+  for(const[code,label]of nutrients){
+   const t=targets[code]||defaults[code],cur=latest[code];
+   if(cur===undefined){lines.push(`Chýba aktuálne meranie ${label}.`);continue}
+   if(cur>t.max){lines.push(`⚠️ ${label} ${cur} mg/l je nad cieľom.`);continue}
+   if(cur>=t.min){lines.push(`✅ ${label} ${cur} mg/l je v cieľovom rozsahu.`);continue}
+   const correctionTarget=t.min+(t.target-t.min)*recoveryShare;
+   desired[code]=Math.min(Math.max(0,correctionTarget-cur),correctionStepMax[code]);
+  }
   const products=items.map(x=>{const d=productData(x);if(!d||d.refDose<=0||d.refL<=0)return null;const perMl:any={};for(const[c]of nutrients)perMl[c]=Number(d.effects?.[c]||0)*(d.refL/aq.net_volume_l)/d.refDose;return{id:x.id,name:d.name,perMl,effects:d.effects,count:countEffects(d.effects)}}).filter(Boolean) as any[];
   const plan=new Map<string,{name:string;dose:number;perMl:any}>();
   for(const[code]of nutrients){if(!desired[code])continue;let remaining=Math.max(0,desired[code]-((projected[code]??latest[code])-(latest[code]??0)));if(remaining<=1e-6)continue;const candidates=products.filter(p=>p.perMl[code]>0).sort((a,b)=>{const sa=(a.count===1?0:100)+a.count*5-(plan.has(a.id)?2:0),sb=(b.count===1?0:100)+b.count*5-(plan.has(b.id)?2:0);return sa-sb});for(const p of candidates){if(remaining<=1e-6)break;let maxDose=Infinity;for(const[nCode]of nutrients){const per=Number(p.perMl[nCode]||0);if(per<=0||latest[nCode]===undefined)continue;const lim=targets[nCode]||defaults[nCode];const room=lim.max-(projected[nCode]??latest[nCode]);maxDose=Math.min(maxDose,Math.max(0,room/per))}if(maxDose<=1e-6)continue;const dose=Math.min(remaining/p.perMl[code],maxDose);if(dose<=1e-6)continue;const existing=plan.get(p.id)||{name:p.name,dose:0,perMl:p.perMl};existing.dose+=dose;plan.set(p.id,existing);for(const[nCode]of nutrients){const inc=Number(p.perMl[nCode]||0)*dose;if(inc>0)projected[nCode]=(projected[nCode]??latest[nCode]??0)+inc}remaining=Math.max(0,desired[code]-((projected[code]??latest[code])-(latest[code]??0)))}if(remaining>desired[code]*.05)warnings.push(`${nutrients.find(x=>x[0]===code)?.[1]} sa nedá bezpečne dorovnať dostupnými hnojivami bez rizika prekročenia iného parametra.`)}
   const planned=[...plan.values()].filter(p=>p.dose>.005).map(p=>{const effects=nutrients.map(([c,l])=>{const inc=p.perMl[c]*p.dose;return inc>.0005?`${l} +${inc.toFixed(c==='fe'?3:2)} mg/l`:null}).filter(Boolean);return{...p,effects}});
-  for(const[code,label]of nutrients){if(!desired[code])continue;const cur=latest[code],inc=(projected[code]??cur)-cur;if(inc>0)lines.push(`🛡️ ${label} ${cur} mg/l je pod cieľom. Spoločný bezpečný plán počíta s približne +${inc.toFixed(code==='fe'?3:2)} mg/l.`);else lines.push(`⛔ ${label} ${cur} mg/l je pod cieľom, ale bezpečnú korekciu z dostupných prípravkov nemožno odporučiť.`)}
+  for(const[code,label]of nutrients){if(!desired[code])continue;const cur=latest[code],inc=(projected[code]??cur)-cur;if(inc>0)lines.push(`🛡️ ${label} ${cur} mg/l je pod cieľom. Korekčný plán počíta s približne +${inc.toFixed(code==='fe'?3:2)} mg/l.`);else lines.push(`⛔ ${label} ${cur} mg/l je pod cieľom, ale bezpečnú korekciu z dostupných prípravkov nemožno odporučiť.`)}
   return{lines,plan:planned,warnings};
  },[aq,items,latest,targets,factor]);
  if(!mount)return null;
- return createPortal(<section className="card"><h3><ShieldCheck size={18}/> Odporúčanie podľa posledného merania</h3><p className="muted">Dávky sa počítajú spoločne. Jednozložkové korekčné hnojivá majú prednosť a pri kombinovaných prípravkoch sa započítava súčasný vplyv na všetky známe parametre.</p>{result.lines.map((x,i)=><p key={`l-${i}`}>{x}</p>)}{result.plan.length>0&&<div className="notice"><b>Odporúčaný prvý krok:</b>{result.plan.map((p:any)=><p key={p.name} style={{marginBottom:6}}><b>{p.dose.toFixed(2)} ml {p.name}</b> · {p.effects.join(' · ')}</p>)}<small>Po približne 24 hodinách parametre znovu premeraj. Rovnaký produkt je v pláne vždy len raz; jeho účinky sa nesčítavajú ako samostatné dávky pre jednotlivé živiny.</small></div>}{result.warnings.map((x,i)=><div className="notice" key={`w-${i}`}>⚠️ {x}</div>)}</section>,mount);
+ return createPortal(<section className="card"><h3><ShieldCheck size={18}/> Odporúčanie podľa posledného merania</h3><p className="muted">Pri deficite sa dávka počíta ako korekcia smerom do cieľového pásma, nie ako malý podiel bezpečnostného faktora. Jednozložkové korekčné hnojivá majú prednosť a pri kombinovaných prípravkoch sa započítava súčasný vplyv na všetky známe parametre.</p>{result.lines.map((x,i)=><p key={`l-${i}`}>{x}</p>)}{result.plan.length>0&&<div className="notice"><b>Odporúčaný prvý krok:</b>{result.plan.map((p:any)=><p key={p.name} style={{marginBottom:6}}><b>{p.dose.toFixed(2)} ml {p.name}</b> · {p.effects.join(' · ')}</p>)}<small>Po približne 24 hodinách parametre znovu premeraj. Rovnaký produkt je v pláne vždy len raz; jeho účinky sa nesčítavajú ako samostatné dávky pre jednotlivé živiny.</small></div>}{result.warnings.map((x,i)=><div className="notice" key={`w-${i}`}>⚠️ {x}</div>)}</section>,mount);
 }
