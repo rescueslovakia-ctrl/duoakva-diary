@@ -10,7 +10,7 @@ import MeasurementsModule from "@/components/MeasurementsModule";
 import PhControllerMeasurementStatus from "@/components/PhControllerMeasurementStatus";
 import MeasurementBiologyStatus from "@/components/MeasurementBiologyStatus";
 
-const fields=[["ph","pH",""],["gh","GH","°dGH"],["kh","KH","°dKH"],["no2","NO₂","mg/l"],["no3","NO₃","mg/l"],["nh3","NH₃","mg/l"],["nh4","NH₄","mg/l"],["po4","PO₄","mg/l"],["fe","Fe","mg/l"],["k","K","mg/l"],["mg","Mg","mg/l"],["ca","Ca","mg/l"],["tds","TDS","ppm"],["ec","Vodivosť","µS/cm"],["temperature","Teplota","°C"],["o2","O₂","mg/l"]] as const;
+const fields=[["ph","pH",""],["gh","GH","°dGH"],["kh","KH","°dKH"],["no2","NO₂","mg/l"],["no3","NO₃","mg/l"],["nh4","NH₄","mg/l"],["po4","PO₄","mg/l"],["fe","Fe","mg/l"],["k","K","mg/l"],["mg","Mg","mg/l"],["ca","Ca","mg/l"],["tds","TDS","ppm"],["ec","Vodivosť","µS/cm"],["temperature","Teplota","°C"],["o2","O₂","mg/l"]] as const;
 const colors=["#0f766e","#2563eb","#dc2626","#9333ea","#d97706","#0891b2","#65a30d","#db2777","#4f46e5","#059669","#ea580c","#7c3aed","#0284c7","#be123c","#16a34a","#475569"];
 type Point={measured_at:string;timestamp:number;[key:string]:any};
 type Period="7"|"30"|"90"|"all";
