@@ -7,8 +7,7 @@ const fallback:Record<string,Range>={
  gh:{goodMin:4,goodMax:15,warnMin:2,warnMax:20},
  kh:{goodMin:2,goodMax:10,warnMin:1,warnMax:14},
  no2:{exactZero:true,warnMax:0.1},
- nh3:{exactZero:true,warnMax:0.02},
- nh4:{exactZero:true,warnMax:0.1},
+ nh4:{goodMin:0,goodMax:0.25,warnMin:0,warnMax:0.5},
  no3:{goodMin:5,goodMax:25,warnMin:0,warnMax:40},
  po4:{goodMin:0.2,goodMax:1.5,warnMin:0,warnMax:2.5},
  fe:{goodMin:0.02,goodMax:0.2,warnMin:0,warnMax:0.5},
@@ -29,7 +28,7 @@ function statusFromRange(value:number,r:Range):MeasurementStatus{
 
 export function measurementStatus(code:string,value:number,target?:TargetRange|null):MeasurementStatus{
  if(!Number.isFinite(value))return 'neutral';
- if(['no2','nh3','nh4'].includes(code))return statusFromRange(value,fallback[code]);
+ if(['no2','nh4'].includes(code))return statusFromRange(value,fallback[code]);
  if(target&&(target.min!=null||target.max!=null)){
   const min=target.min,max=target.max;
   const inTarget=(min==null||value>=min)&&(max==null||value<=max);if(inTarget)return 'good';
