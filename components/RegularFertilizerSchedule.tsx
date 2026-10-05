@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useState} from "react";
-import {CalendarDays} from "lucide-react";
+import {CalendarDays,Clock3,Droplets,ChevronDown,Check,Settings2} from "lucide-react";
 import {createClient} from "@/lib/supabase/client";
 import {doseNutrients,formatNutrients,type NutrientAssignment} from "@/lib/doseNutrients";
 import type {Aquarium} from "@/components/AquariumsModule";
@@ -11,6 +11,7 @@ const blank=(head:number):Plan=>({head,aquarium_fertilizer_id:'',dose_ml:'',loca
 const nameOf=(a:Assignment)=>a.custom_name||`${a.fertilizer_catalog?.manufacturer||''} ${a.fertilizer_catalog?.product_name||'Hnojivo'}`.trim();
 export default function RegularFertilizerSchedule({aquariums}:{aquariums:Aquarium[]}){
  const[aquariumId,setAquariumId]=useState(aquariums[0]?.id||'');
+ const[activeHead,setActiveHead]=useState<number|null>(1);
  const[items,setItems]=useState<Assignment[]>([]),[plans,setPlans]=useState<Plan[]>([]),[loading,setLoading]=useState(true),[busy,setBusy]=useState<number|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[revision,setRevision]=useState(0);
  useEffect(()=>{if(!aquariumId&&aquariums[0])setAquariumId(aquariums[0].id)},[aquariums,aquariumId]);
  useEffect(()=>{
@@ -45,28 +46,38 @@ export default function RegularFertilizerSchedule({aquariums}:{aquariums:Aquariu
   }catch{setMessage('Plán sa nepodarilo uložiť. Skús to znova.');}finally{setBusy(null);}
  }
  if(!aquariums.length)return <section className="card"><h3>Pravidelný režim</h3><p>Najprv vytvor akvárium.</p></section>;
- return <section className="card"><div className="section-head"><h3><CalendarDays size={18}/> Automatický plán hnojenia</h3></div>
-  <p className="muted">Nastav rovnaké dávky a časy ako v aplikácii dávkovača. Diary podľa plánu automaticky zapisuje dávky aj pri zatvorenej aplikácii. Dávkovač fyzicky neovláda a nepotvrdzuje skutočné podanie.</p>
-  <div className="form one"><label>Akvárium<select disabled={busy!==null} value={aquariumId} onChange={e=>{if(plans.some(p=>p.dirty)&&!confirm('Zmeniť akvárium a zahodiť neuložené úpravy?'))return;setAquariumId(e.target.value)}}>{aquariums.map(a=><option key={a.id} value={a.id}>{a.name} · {a.net_volume_l} l</option>)}</select></label></div>
-  {loading?<p role="status">Načítavam plán…</p>:error?<div className="notice" role="alert">{error} <button onClick={()=>setRevision(v=>v+1)}>Obnoviť načítanie</button></div>:<div style={{display:'grid',gap:16,marginTop:16}}>{plans.map(p=>{
-   const item=items.find(a=>a.id===p.aquarium_fertilizer_id),values=doseNutrients(item,Number(p.dose_ml),Number(aq?.net_volume_l));
-   return <form className="card" key={`${aquariumId}-${p.head}`} onSubmit={e=>{e.preventDefault();save(p)}}>
-    <h4>Hlavica {p.head} · {p.dirty?'Neuložené zmeny':p.enabled?'Zapnutá':'Vypnutá'}</h4>
-    <fieldset disabled={busy!==null} style={{border:0,padding:0,margin:0,minWidth:0}}><div className="form">
-     <label>Hnojivo<select required value={p.aquarium_fertilizer_id} onChange={e=>change(p.head,{aquarium_fertilizer_id:e.target.value})}><option value="">Vyber hnojivo</option>{items.filter(a=>a.available||a.id===p.aquarium_fertilizer_id).map(a=><option key={a.id} value={a.id}>{nameOf(a)}{!a.available?' · nedostupné':''}</option>)}</select></label>
-     <label>Dávka pri jednom podaní (ml)<input type="number" required min="0.01" max="10000" step="0.01" value={p.dose_ml} onChange={e=>change(p.head,{dose_ml:e.target.value})}/></label>
-     <div className="notice" style={{gridColumn:'1/-1'}}><b>Živiny dodané jednou dávkou</b><p>{formatNutrients(values)}</p><small>Pre čistý objem {aq?.net_volume_l} l. Ide o vypočítaný prírastok, nie výsledok merania vody.</small></div>
-     <label>Čas dávkovania<input type="time" required value={p.local_time} onChange={e=>change(p.head,{local_time:e.target.value})}/></label>
-     <label>Časové pásmo<select value={p.timezone} onChange={e=>change(p.head,{timezone:e.target.value})}>{Array.from(new Set(['Europe/Bratislava','UTC',p.timezone])).map(zone=><option key={zone} value={zone}>{zone==='Europe/Bratislava'?'Slovensko (letný a zimný čas)':zone}</option>)}</select></label>
-     <label>Frekvencia<select value={p.weekdays.length===7?'daily':'selected'} onChange={e=>change(p.head,{weekdays:e.target.value==='daily'?[1,2,3,4,5,6,7]:[1,3,5]})}><option value="daily">Denne</option><option value="selected">Vybrané dni v týždni</option></select></label>
-     {p.weekdays.length!==7&&<div style={{display:'flex',flexWrap:'wrap',gap:12,gridColumn:'1/-1'}}>{days.map((day,i)=><label key={day} style={{display:'flex',alignItems:'center',gap:6}}><input type="checkbox" checked={p.weekdays.includes(i+1)} onChange={e=>change(p.head,{weekdays:e.target.checked?[...p.weekdays,i+1]:p.weekdays.filter(d=>d!==i+1)})}/>{day}</label>)}</div>}
-     <label style={{display:'flex',alignItems:'center',gap:8,gridColumn:'1/-1'}}><input type="checkbox" checked={p.enabled} onChange={e=>change(p.head,{enabled:e.target.checked})}/> Zapnúť automatický zápis dávok</label>
-     <div className="form-actions"><button className="primary" disabled={busy!==null}>{busy===p.head?'Ukladám…':'Uložiť hlavicu'}</button></div>
-    </div></fieldset>
-    {!p.dirty&&p.enabled&&p.next_run_at&&<p className="muted">Najbližší zápis: {new Date(p.next_run_at).toLocaleString('sk-SK',{timeZone:p.timezone})} · {p.timezone}</p>}
-   </form>;
-  })}</div>}
-  {message&&<div className="notice" role="status">{message}</div>}
-  <p className="muted">Zápisy sú označené „Automatické dávkovanie podľa plánu“. Zapnutie alebo zmena plánu platí pre nasledujúci termín; staršie dávky sa nedopĺňajú. Vypnutie začne platiť po uložení hlavice.</p>
+ return <section className="card dosing-console">
+  <header className="dosing-console-header"><div><span className="dosing-eyebrow">PRAVIDELNÝ REŽIM</span><h3><Droplets size={22}/> Dávkovací plán</h3></div><span className="dosing-head-count">4 hlavice</span></header>
+  <p className="dosing-description">Nastav plán podľa svojho dávkovača. Diary automaticky eviduje dávky; fyzické podanie nepotvrdzuje.</p>
+  <label className="dosing-aquarium">Akvárium<select disabled={busy!==null} value={aquariumId} onChange={e=>{if(plans.some(p=>p.dirty)&&!confirm('Zmeniť akvárium a zahodiť neuložené úpravy?'))return;setAquariumId(e.target.value)}}>{aquariums.map(a=><option key={a.id} value={a.id}>{a.name} · {a.net_volume_l} l</option>)}</select></label>
+  {loading?<p role="status">Načítavam plán…</p>:error?<div className="dosing-message" role="alert">{error} <button onClick={()=>setRevision(v=>v+1)}>Obnoviť načítanie</button></div>:<>
+   <nav className="dosing-pump" aria-label="Výber dávkovacej hlavice">{plans.map(p=><button type="button" className={`dosing-pump-head ${activeHead===p.head?'selected':''}`} key={p.head} aria-label={`Upraviť hlavicu ${p.head}`} aria-pressed={activeHead===p.head} onClick={()=>setActiveHead(p.head)}><span className={`dosing-pump-number ${p.enabled?'on':''}`}>{p.head}</span><span className="dosing-pump-caption">{p.dirty?'Neuložené':p.enabled?'Zapnutá':'Vypnutá'}</span></button>)}</nav>
+   <div className="dosing-cards">{plans.map(p=>{
+    const item=items.find(a=>a.id===p.aquarium_fertilizer_id),ml=Number(p.dose_ml),values=doseNutrients(item,ml,Number(aq?.net_volume_l)),expanded=activeHead===p.head;
+    const frequency=p.weekdays.length===7?'Denne':p.weekdays.length?p.weekdays.slice().sort((a,b)=>a-b).map(d=>days[d-1]).join(' · '):'Vyber dni';
+    return <article className={`dosing-channel ${expanded?'expanded':''}`} key={`${aquariumId}-${p.head}`}>
+     <div className="dosing-channel-header"><span className="dosing-channel-number">{p.head}</span><div className="dosing-channel-title"><h4>{item?nameOf(item):`Hlavica ${p.head}`}</h4><span className={`dosing-channel-status ${p.enabled&&!p.dirty?'on':''}`}>{p.dirty?'Neuložené zmeny':p.enabled?'Automatický zápis zapnutý':'Automatický zápis vypnutý'}</span></div><button type="button" className="dosing-edit" aria-label={`${expanded?'Zavrieť':'Upraviť'} hlavicu ${p.head}`} aria-expanded={expanded} aria-controls={`dosing-editor-${p.head}`} onClick={()=>setActiveHead(expanded?null:p.head)}><Settings2 size={18}/></button></div>
+     <div className="dosing-channel-meta"><span><Droplets size={16}/><b>{ml>0?ml.toLocaleString('sk-SK',{maximumFractionDigits:2}):'—'} ml</b></span><span>{frequency}</span><span><Clock3 size={16}/>{p.local_time}</span></div>
+     <div className="dosing-nutrients">{values?Object.entries(values).map(([code,value])=><span key={code}>{formatNutrients({[code]:value})}</span>):<span className="dosing-unknown">{!item?'Vyber hnojivo a nastav dávku.':!(ml>0)?'Zadaj dávku pre výpočet živín.':'Prírastok živín nie je overený.'}</span>}</div>
+     {expanded?<form id={`dosing-editor-${p.head}`} className="dosing-editor" onSubmit={e=>{e.preventDefault();save(p)}}>
+      <fieldset disabled={busy!==null}><div className="dosing-fields">
+       <label className="dosing-full">Hnojivo<select required value={p.aquarium_fertilizer_id} onChange={e=>change(p.head,{aquarium_fertilizer_id:e.target.value})}><option value="">Vyber hnojivo</option>{items.filter(a=>a.available||a.id===p.aquarium_fertilizer_id).map(a=><option key={a.id} value={a.id}>{nameOf(a)}{!a.available?' · nedostupné':''}</option>)}</select></label>
+       <label>Dávka pri jednom podaní<input type="number" required min="0.01" max="10000" step="0.01" placeholder="ml" value={p.dose_ml} onChange={e=>change(p.head,{dose_ml:e.target.value})}/></label>
+       <label>Čas dávkovania<input type="time" required value={p.local_time} onChange={e=>change(p.head,{local_time:e.target.value})}/></label>
+       <label className="dosing-dose-slider dosing-full">Dávka v ml<input type="range" min="0.1" max={Math.max(10,Math.ceil((ml||1)/5)*5)} step="0.1" value={ml||0.1} onChange={e=>change(p.head,{dose_ml:e.target.value})}/><span><span>0,1 ml</span><b>{ml>0?ml.toLocaleString('sk-SK',{maximumFractionDigits:2}):'—'} ml</b><span>{Math.max(10,Math.ceil((ml||1)/5)*5)} ml</span></span></label>
+       <label>Frekvencia<select value={p.weekdays.length===7?'daily':'selected'} onChange={e=>change(p.head,{weekdays:e.target.value==='daily'?[1,2,3,4,5,6,7]:[1,3,5]})}><option value="daily">Denne</option><option value="selected">Vybrané dni</option></select></label>
+       <label>Časové pásmo<select value={p.timezone} onChange={e=>change(p.head,{timezone:e.target.value})}>{Array.from(new Set(['Europe/Bratislava','UTC',p.timezone])).map(zone=><option key={zone} value={zone}>{zone==='Europe/Bratislava'?'Slovensko':zone}</option>)}</select></label>
+       <div className="dosing-days dosing-full" role="group" aria-label={`Dni dávkovania hlavice ${p.head}`}>{days.map((day,i)=><button type="button" aria-pressed={p.weekdays.includes(i+1)} key={day} onClick={()=>change(p.head,{weekdays:p.weekdays.includes(i+1)?p.weekdays.filter(d=>d!==i+1):[...p.weekdays,i+1]})}>{day}</button>)}</div>
+       <label className="dosing-switch-row dosing-full"><span>Automatický zápis<span>Platí po uložení hlavice</span></span><input className="dosing-switch" role="switch" type="checkbox" checked={p.enabled} onChange={e=>change(p.head,{enabled:e.target.checked})}/></label>
+       <button className="dosing-save dosing-full" disabled={busy!==null}><Check size={17}/>{busy===p.head?'Ukladám…':'Uložiť hlavicu'}</button>
+      </div></fieldset>
+      <p className="dosing-volume">Vypočítané živiny pre {aq?.net_volume_l} l vody. Ide o prírastok po dávke, nie meranie vody.</p>
+     </form>:<button type="button" className="dosing-expand" onClick={()=>setActiveHead(p.head)}>Upraviť plán <ChevronDown size={16}/></button>}
+     {!p.dirty&&p.enabled&&p.next_run_at&&<p className="dosing-next"><Clock3 size={14}/> Najbližší zápis: {new Date(p.next_run_at).toLocaleString('sk-SK',{timeZone:p.timezone})}</p>}
+    </article>;
+   })}</div>
+  </>}
+  {message&&<div className="dosing-message" role="status">{message}</div>}
+  <p className="dosing-footnote"><CalendarDays size={15}/> Plán sa zapisuje aj pri zatvorenej aplikácii. Zmeny platia od nasledujúceho termínu.</p>
  </section>;
 }
