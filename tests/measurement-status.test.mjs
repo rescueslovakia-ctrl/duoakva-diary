@@ -5,7 +5,9 @@ import {measurementStatus,measurementStatusLabel} from '../lib/measurementStatus
 test('toxic nitrogen ignores custom targets',()=>{
   assert.equal(measurementStatus('no2',0,{min:0,max:1,source:'user_custom'}),'good');
   assert.equal(measurementStatus('no2',0.4,{min:0,max:1,source:'user_custom'}),'bad');
-  assert.equal(measurementStatus('nh3',0.03,{min:0,max:1,source:'user_custom'}),'bad');
+  assert.equal(measurementStatus('nh4',0.25,{min:0,max:1,source:'user_custom'}),'good');
+  assert.equal(measurementStatus('nh4',0.26,{min:0,max:1,source:'user_custom'}),'warning');
+  assert.equal(measurementStatus('nh4',0.6,{min:0,max:1,source:'user_custom'}),'bad');
 });
 
 test('custom pH range overrides generic range and labels source',()=>{
@@ -20,3 +22,4 @@ test('controller source has distinct status label',()=>{
   assert.equal(measurementStatus('ph',6.5,target),'good');
   assert.equal(measurementStatusLabel('good',target),'V rozsahu nastavenia pH controlleru');
 });
+

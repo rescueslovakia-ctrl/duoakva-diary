@@ -1,4 +1,5 @@
 "use client";
+import {formatNutrients} from "@/lib/doseNutrients";
 import {useEffect,useMemo,useState} from "react";
 import {Droplets,Fish,Leaf,Sparkles,Wrench} from "lucide-react";
 import {CartesianGrid,Legend,Line,LineChart,ReferenceArea,ResponsiveContainer,Tooltip,XAxis,YAxis} from "recharts";
@@ -64,7 +65,7 @@ function MeasurementTrendChart({aquariums}:{aquariums:Aquarium[]}){
    s.from('aquarium_livestock').select('discovery_data,livestock_catalog(ph_min,ph_max,gh_min,gh_max,kh_min,kh_max,temperature_min,temperature_max)').eq('aquarium_id',aquariumId).eq('active',true),
    s.from('aquarium_livestock').select('id,custom_name,category,quantity,added_date,livestock_catalog(common_name,scientific_name)').eq('aquarium_id',aquariumId).not('added_date','is',null).order('added_date',{ascending:true}),
    s.from('aquarium_maintenance').select('id,maintenance_type,custom_type,performed_at,water_change_l,water_change_percent,notes').eq('aquarium_id',aquariumId).order('performed_at',{ascending:true}).limit(500),
-   s.from('fertilizer_doses').select('id,aquarium_fertilizer_id,dose_ml,dosed_at,notes').eq('aquarium_id',aquariumId).order('dosed_at',{ascending:true}).limit(500),
+   s.from('fertilizer_doses').select('id,aquarium_fertilizer_id,dose_ml,dosed_at,notes,source_type,nutrient_snapshot,fertilizer_name_snapshot').eq('aquarium_id',aquariumId).order('dosed_at',{ascending:true}).limit(500),
    s.from('aquarium_fertilizers').select('id,custom_name,fertilizer_catalog(manufacturer,product_name)').eq('aquarium_id',aquariumId),
    s.from('aquarium_plants').select('id,custom_name,quantity,created_at,plant_catalog(common_name,scientific_name)').eq('aquarium_id',aquariumId).order('created_at',{ascending:true}),
    s.from('aquarium_equipment').select('id,category,manufacturer,model,created_at,notes').eq('aquarium_id',aquariumId).order('created_at',{ascending:true})
@@ -77,7 +78,7 @@ function MeasurementTrendChart({aquariums}:{aquariums:Aquarium[]}){
   if(!livestock.error)for(const x of livestock.data||[]){if(!x.added_date)continue;all.push({id:x.id,kind:'livestock',timestamp:eventDateTs(x.added_date),title:'Pridaná osádka',detail:`${Number(x.quantity)||1}× ${livestockName(x)}`})}
   if(!maintenance.error)for(const x of maintenance.data||[]){const ts=new Date(x.performed_at).getTime();if(!Number.isFinite(ts))continue;const label=x.maintenance_type==='other'&&x.custom_type?x.custom_type:(maintenanceLabels[x.maintenance_type]||'Údržba');let detail=label;if(x.maintenance_type==='water_change'){const parts=[];if(Number(x.water_change_l)>0)parts.push(`${Number(x.water_change_l)} l`);if(Number(x.water_change_percent)>0)parts.push(`${Number(x.water_change_percent).toFixed(0)} %`);if(parts.length)detail+=` · ${parts.join(' · ')}`}all.push({id:x.id,kind:'maintenance',timestamp:ts,title:label,detail,note:x.notes||null})}
   const fertMap=new Map<string,string>();if(!ferts.error)for(const x of ferts.data||[])fertMap.set(x.id,fertilizerName(x));
-  if(!doses.error)for(const x of doses.data||[]){const ts=new Date(x.dosed_at).getTime();if(!Number.isFinite(ts))continue;const name=x.aquarium_fertilizer_id?fertMap.get(x.aquarium_fertilizer_id):undefined;all.push({id:x.id,kind:'fertilizer',timestamp:ts,title:'Dávka hnojiva',detail:`${name||'Hnojivo'} · ${fmt(Number(x.dose_ml))} ml`,note:x.notes||null})}
+  if(!doses.error)for(const x of doses.data||[]){const ts=new Date(x.dosed_at).getTime();if(!Number.isFinite(ts))continue;const name=x.aquarium_fertilizer_id?fertMap.get(x.aquarium_fertilizer_id):undefined;all.push({id:x.id,kind:'fertilizer',timestamp:ts,title:x.source_type==='automatic'?'Automatická dávka podľa plánu':'Dávka hnojiva',detail:`${x.fertilizer_name_snapshot||name||'Hnojivo'} · ${fmt(Number(x.dose_ml))} ml${x.nutrient_snapshot?' · '+formatNutrients(x.nutrient_snapshot):''}`,note:x.notes||null})}
   if(!plants.error)for(const x of plants.data||[]){const ts=new Date(x.created_at).getTime();if(!Number.isFinite(ts))continue;all.push({id:x.id,kind:'plant',timestamp:ts,title:'Pridaná rastlina',detail:`${Number(x.quantity)||1}× ${plantName(x)}`})}
   if(!equipmentEvents.error)for(const x of equipmentEvents.data||[]){const ts=new Date(x.created_at).getTime();if(!Number.isFinite(ts))continue;const name=`${x.manufacturer||''} ${x.model||''}`.trim()||equipmentLabels[x.category]||'Technika';all.push({id:x.id,kind:'equipment',timestamp:ts,title:'Pridaná technika',detail:`${equipmentLabels[x.category]||'Technika'} · ${name}`,note:x.notes||null})}
   setEvents(all.sort((a,b)=>a.timestamp-b.timestamp));
@@ -112,3 +113,4 @@ function MeasurementTrendChart({aquariums}:{aquariums:Aquarium[]}){
 
 type MeasurementTab="new"|"history"|"biology"|"trend";
 export default function MeasurementsPage({aquariums}:{aquariums:Aquarium[]}){const[tab,setTab]=useState<MeasurementTab>("new");if(!aquariums.length)return <section className="card"><h3>Merania</h3><p>Najprv vytvor akvárium.</p></section>;return <div className="measurements-v1"><div className="measurements-v1-tabs">{[["new","Nové meranie"],["history","História meraní"],["biology","Biologické vyhodnotenie"],["trend","Graf vývoja"]].map(([key,label])=><button key={key} type="button" className={tab===key?"active":""} onClick={()=>setTab(key as MeasurementTab)}>{label}</button>)}</div><div className={`measurements-v1-content measurements-${tab}`}>{tab==="new"?<><PhControllerMeasurementStatus aquariums={aquariums}/><MeasurementsModule aquariums={aquariums} view="new"/></>:tab==="history"?<MeasurementsModule aquariums={aquariums} view="history"/>:tab==="biology"?<MeasurementBiologyStatus aquariums={aquariums}/>:<MeasurementTrendChart aquariums={aquariums}/>}</div></div>}
+
