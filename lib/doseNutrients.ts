@@ -2,7 +2,7 @@ export type NutrientAssignment = {
  custom_nutrient_effects?: any;
  fertilizer_catalog?: {verification_status?: string | null; reference_liters?: number | null; reference_dose_ml?: number | null; nutrient_effects?: any} | null;
 };
-export const nutrientLabels: Record<string,string> = {no3:'NO₃',po4:'PO₄',k:'K',fe:'Fe',mg:'Mg',ca:'Ca'};
+export const nutrientLabels: Record<string,string> = {no3:'NO₃',po4:'PO₄',k:'K',fe:'Fe',mg:'Mg',ca:'Ca',b:'B',co:'Co',cu:'Cu',mn:'Mn',mo:'Mo',zn:'Zn',rb:'Rb',ni:'Ni',v:'V'};
 export function doseNutrients(a: NutrientAssignment | undefined, ml: number, liters: number): Record<string,number> | null {
  const custom=a?.custom_nutrient_effects;
  const c=a?.fertilizer_catalog;
@@ -13,9 +13,11 @@ export function doseNutrients(a: NutrientAssignment | undefined, ml: number, lit
   const effect=Number(d.effects?.[code]);
   if(Number.isFinite(effect)&&effect>0)result[code]=effect*(d.refL/liters)*(ml/d.refDose);
  }
- return Object.keys(result).length ? result : null;
+ if(!Object.keys(result).length)return null;
+ if(d.effects?.__calculation?.estimated===true)result.__estimated=1;
+ return result;
 }
 export function formatNutrients(values: Record<string,number> | null | undefined): string {
  if(!values || !Object.keys(values).length)return 'Obsah živín nie je overený – prírastok nemožno vypočítať.';
- return Object.entries(values).filter(([code,value])=>nutrientLabels[code]&&Number.isFinite(Number(value))).map(([code,value])=>`+${Number(value).toLocaleString('sk-SK',{maximumFractionDigits:4})} mg/l ${nutrientLabels[code]}`).join(' · ');
+ return Object.entries(values).filter(([code,value])=>nutrientLabels[code]&&Number.isFinite(Number(value))).map(([code,value])=>`${values.__estimated===1?'≈ +':'+'}${Number(value).toLocaleString('sk-SK',{maximumSignificantDigits:4})} mg/l ${nutrientLabels[code]}`).join(' · ');
 }

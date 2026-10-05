@@ -21,3 +21,16 @@ test('confirmed user label overrides catalog and unknown content remains unknown
  assert.equal(doseNutrients({custom_nutrient_effects:{user_confirmed:true}},1,100),null);
  assert.match(formatNutrients(null),/nie je overený/);
 });
+
+test('Trace dose includes all trace elements and explicitly marks density estimate',()=>{
+ const a={fertilizer_catalog:{verification_status:'verified',reference_liters:80,reference_dose_ml:5,nutrient_effects:{b:.00175,co:.00001875,cu:.002,mn:.0053125,mo:.0001875,zn:.0105625,rb:.000005,ni:.000001875,v:.00000125,__calculation:{estimated:true}}}};
+ const result=doseNutrients(a,2.8,180);
+ assert.equal(Object.keys(result).filter(k=>!k.startsWith('__')).length,9);
+ assert.ok(Math.abs(result.zn-.002628888888888889)<1e-12);
+ assert.equal(result.__estimated,1);
+ const text=formatNutrients(result);
+ assert.match(text,/≈ \+/);
+ assert.match(text,/mg\/l Rb/);
+ assert.doesNotMatch(text,/\+0 mg/);
+ assert.doesNotMatch(text,/__estimated/);
+});

@@ -2,7 +2,7 @@
 import {useEffect,useState} from "react";
 import {CalendarDays,Clock3,Droplets,ChevronDown,Check,Settings2} from "lucide-react";
 import {createClient} from "@/lib/supabase/client";
-import {doseNutrients,formatNutrients,type NutrientAssignment} from "@/lib/doseNutrients";
+import {doseNutrients,formatNutrients,nutrientLabels,type NutrientAssignment} from "@/lib/doseNutrients";
 import type {Aquarium} from "@/components/AquariumsModule";
 type Assignment=NutrientAssignment & {id:string;custom_name?:string|null;available:boolean;fertilizer_catalog?:NonNullable<NutrientAssignment['fertilizer_catalog']> & {manufacturer?:string|null;product_name:string}|null};
 type Plan={id?:string;head:number;aquarium_fertilizer_id:string;dose_ml:string;local_time:string;timezone:string;weekdays:number[];enabled:boolean;next_run_at?:string|null;dirty?:boolean};
@@ -58,7 +58,8 @@ export default function RegularFertilizerSchedule({aquariums}:{aquariums:Aquariu
     return <article className={`dosing-channel ${expanded?'expanded':''}`} key={`${aquariumId}-${p.head}`}>
      <div className="dosing-channel-header"><span className="dosing-channel-number">{p.head}</span><div className="dosing-channel-title"><h4>{item?nameOf(item):`Hlavica ${p.head}`}</h4><span className={`dosing-channel-status ${p.enabled&&!p.dirty?'on':''}`}>{p.dirty?'Neuložené zmeny':p.enabled?'Automatický zápis zapnutý':'Automatický zápis vypnutý'}</span></div><button type="button" className="dosing-edit" aria-label={`${expanded?'Zavrieť':'Upraviť'} hlavicu ${p.head}`} aria-expanded={expanded} aria-controls={`dosing-editor-${p.head}`} onClick={()=>setActiveHead(expanded?null:p.head)}><Settings2 size={18}/></button></div>
      <div className="dosing-channel-meta"><span><Droplets size={16}/><b>{ml>0?ml.toLocaleString('sk-SK',{maximumFractionDigits:2}):'—'} ml</b></span><span>{frequency}</span><span><Clock3 size={16}/>{p.local_time}</span></div>
-     <div className="dosing-nutrients">{values?Object.entries(values).map(([code,value])=><span key={code}>{formatNutrients({[code]:value})}</span>):<span className="dosing-unknown">{!item?'Vyber hnojivo a nastav dávku.':!(ml>0)?'Zadaj dávku pre výpočet živín.':'Prírastok živín nie je overený.'}</span>}</div>
+     <div className="dosing-nutrients">{values?Object.entries(values).filter(([code])=>nutrientLabels[code]).map(([code,value])=><span key={code}>{formatNutrients({[code]:value,...(values.__estimated===1?{__estimated:1}:{})})}</span>):<span className="dosing-unknown">{!item?'Vyber hnojivo a nastav dávku.':!(ml>0)?'Zadaj dávku pre výpočet živín.':'Prírastok živín nie je overený.'}</span>}</div>
+     {values?.__estimated===1&&<p className="dosing-volume">Odhad pri hustote 1 g/ml.</p>}
      {expanded?<form id={`dosing-editor-${p.head}`} className="dosing-editor" onSubmit={e=>{e.preventDefault();save(p)}}>
       <fieldset disabled={busy!==null}><div className="dosing-fields">
        <label className="dosing-full">Hnojivo<select required value={p.aquarium_fertilizer_id} onChange={e=>change(p.head,{aquarium_fertilizer_id:e.target.value})}><option value="">Vyber hnojivo</option>{items.filter(a=>a.available||a.id===p.aquarium_fertilizer_id).map(a=><option key={a.id} value={a.id}>{nameOf(a)}{!a.available?' · nedostupné':''}</option>)}</select></label>

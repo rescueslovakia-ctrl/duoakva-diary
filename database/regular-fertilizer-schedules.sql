@@ -98,8 +98,9 @@ begin
   impact=null;
   if volume>0 and ref_l>0 and ref_ml>0 and jsonb_typeof(effects)='object' then
    select jsonb_object_agg(key,diary_private.positive_number(value)*ref_l/volume*s.dose_ml/ref_ml) into impact
-    from jsonb_each_text(effects) where key in ('no3','po4','k','fe','mg','ca') and diary_private.positive_number(value) is not null;
+    from jsonb_each_text(effects) where key in ('no3','po4','k','fe','mg','ca','b','co','cu','mn','mo','zn','rb','ni','v') and diary_private.positive_number(value) is not null;
   end if;
+  if impact is not null and effects->'__calculation'->>'estimated'='true' then impact=impact || '{"__estimated":1}'::jsonb; end if;
   -- Bounded recovery window; never invent months of doses after an outage.
   while s.next_run_at<=now() loop
    if s.next_run_at>=now()-interval '7 days' then
